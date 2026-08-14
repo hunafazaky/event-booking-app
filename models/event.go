@@ -1,14 +1,15 @@
 package models
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Event struct {
-	Id          int
-	Name        string `binding:"required"`
-	Description string `binding:"required"`
-	Location    string `binding:"required"`
-	DateTime    time.Time
-	UserId      int
+	gorm.Model
+	Name        string `binding:"required" json:"name"`
+	Description string `binding:"required" json:"description"`
+	Location    string `binding:"required" json:"location"`
+	UserID      int    `json:"user_id"`
 }
 
 var events []Event = []Event{}

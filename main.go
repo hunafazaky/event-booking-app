@@ -1,14 +1,23 @@
 package main
 
 import (
+	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hunafazaky/event-booking-app/config"
 	"github.com/hunafazaky/event-booking-app/models"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file. Err: ", err)
+	}
+
+	config.ConnectDB()
+
 	server := gin.Default()
 	server.SetTrustedProxies([]string{"localhost"})
 
@@ -42,10 +51,6 @@ func createEvent(c *gin.Context) {
 		})
 		return
 	}
-
-	event.Id = 1
-	event.UserId = 1
-	event.DateTime = time.Now()
 
 	event.Save()
 
