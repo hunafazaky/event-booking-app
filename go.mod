@@ -1,4 +1,4 @@
-module test-golang
+module github.com/hunafazaky/event-booking-app
 
 go 1.26.5
 
