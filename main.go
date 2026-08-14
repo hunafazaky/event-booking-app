@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hunafazaky/event-booking-app/config"
-	"github.com/hunafazaky/event-booking-app/models"
+	"github.com/hunafazaky/event-booking-app/handlers"
 	"github.com/joho/godotenv"
 )
 
@@ -23,39 +22,12 @@ func main() {
 
 	{
 		api := server.Group("/api")
-		api.GET("/events", getEvents)
-		api.POST("/events", createEvent)
+		api.GET("/events", handlers.GetEvents)
+		api.GET("/events/:id", handlers.GetEventById)
+		api.POST("/events", handlers.CreateEvent)
+		api.PUT("/events/:id", handlers.UpdateEventById)
+		api.DELETE("/events/:id", handlers.DeleteEventById)
 	}
 
 	server.Run(":8080")
-}
-
-// GET /events - Retrieve all events
-func getEvents(c *gin.Context) {
-	events := models.GetAllEvents()
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Events retrieved.",
-		"data":    events,
-	})
-}
-
-// POST /events - Create a new event
-func createEvent(c *gin.Context) {
-	var event models.Event
-	err := c.ShouldBindJSON(&event)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Could not parse request data.",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	event.Save()
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "New Event Created",
-		"data":    event,
-	})
 }
