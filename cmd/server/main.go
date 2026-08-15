@@ -32,6 +32,7 @@ func main() {
 	{
 		api := server.Group("/api/auth")
 		api.POST("/signup", handler.SignUpUser)
+		api.POST("/signin", handler.SignInUser)
 	}
 
 	server.Run(":8080")
