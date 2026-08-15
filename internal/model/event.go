@@ -8,11 +8,12 @@ import (
 
 type Event struct {
 	gorm.Model
-	Name        string    `binding:"required" json:"name"`
-	Description string    `binding:"required" json:"description"`
-	Location    string    `binding:"required" json:"location"`
+	Name        string    `json:"name" binding:"required" `
+	Description string    `json:"description" binding:"required" `
+	Location    string    `json:"location" binding:"required" `
 	UserID      int       `json:"user_id"`
-	DateTime    time.Time `binding:"required" json:"date_time"`
+	User        User      `json:"-" gorm:"foreignKey:user_id"`
+	DateTime    time.Time `json:"date_time" binding:"required" `
 }
 
 var events []Event = []Event{}

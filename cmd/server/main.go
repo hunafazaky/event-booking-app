@@ -21,12 +21,17 @@ func main() {
 	server.SetTrustedProxies([]string{"localhost"})
 
 	{
-		api := server.Group("/api")
-		api.GET("/events", handler.GetEvents)
-		api.GET("/events/:id", handler.GetEventById)
-		api.POST("/events", handler.CreateEvent)
-		api.PUT("/events/:id", handler.UpdateEventById)
-		api.DELETE("/events/:id", handler.DeleteEventById)
+		api := server.Group("/api/events")
+		api.GET("/", handler.GetEvents)
+		api.GET("/:id", handler.GetEventById)
+		api.POST("", handler.CreateEvent)
+		api.PUT("/:id", handler.UpdateEventById)
+		api.DELETE("/:id", handler.DeleteEventById)
+	}
+
+	{
+		api := server.Group("/api/auth")
+		api.POST("/signup", handler.SignUpUser)
 	}
 
 	server.Run(":8080")
