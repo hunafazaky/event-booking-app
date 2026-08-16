@@ -103,3 +103,29 @@ func SignInUser(c *gin.Context) {
 		},
 	})
 }
+
+func GetAuthUser(c *gin.Context) {
+	userID, exist := c.Get("user_id")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authenticated",
+		})
+		return
+	}
+
+	var user model.User
+
+	if err := config.DB.Select("id", "name", "email").First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "User not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":     user.ID,
+		"name":   user.Name,
+		"email":  user.Email,
+		"events": user.Events,
+	})
+}

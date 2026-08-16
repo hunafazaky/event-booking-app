@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hunafazaky/event-booking-app/internal/config"
 	"github.com/hunafazaky/event-booking-app/internal/handler"
+	"github.com/hunafazaky/event-booking-app/internal/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -33,6 +34,13 @@ func main() {
 		api := server.Group("/api/auth")
 		api.POST("/signup", handler.SignUpUser)
 		api.POST("/signin", handler.SignInUser)
+	}
+
+	{
+		protectedApi := server.Group("/api")
+		protectedApi.Use(middleware.RequireAuth())
+		protectedApi.GET("/auth/me", handler.GetAuthUser)
+
 	}
 
 	server.Run(":8080")
