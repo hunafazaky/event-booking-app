@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -11,11 +12,28 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDB() {
-	dsn := os.Getenv("DB_URI")
-	if dsn == "" {
-		log.Fatal("Environment variable is not set.")
+func getDSN(dbURI, dbHost, dbPort, dbUser, dbPassword, dbName, dbSSLMode string) string {
+	if dbURI != "" {
+		return dbURI
 	}
+	if dbHost == "" || dbPort == "" || dbUser == "" || dbPassword == "" || dbName == "" || dbSSLMode == "" {
+		log.Fatal("Required database environment variables are missing.")
+	}
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		dbHost, dbUser, dbPassword, dbName, dbPort, dbSSLMode,
+	)
+}
+
+func ConnectDB() {
+	dbURI := os.Getenv("DB_URI")
+	dbHost := os.Getenv("POSTGRES_HOST")
+	dbPort := os.Getenv("POSTGRES_PORT")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbName := os.Getenv("POSTGRES_DB_NAME")
+	dbSSLMode := os.Getenv("POSTGRES_SSLMODE")
+
+	dsn := getDSN(dbURI, dbHost, dbPort, dbUser, dbPassword, dbName, dbSSLMode)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 

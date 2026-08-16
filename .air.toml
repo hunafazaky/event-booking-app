@@ -1,6 +1,6 @@
 [build]
   # Tell Go to build the package inside ./cmd/server
-  cmd = "go build -o ./tmp/main ./cmd/server"
-  
+  cmd = "go build -buildvcs=false -o ./tmp/main ./cmd/server"
+
   # Path to the compiled binary
   bin = "./tmp/main"
