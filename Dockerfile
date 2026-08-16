@@ -1,3 +1,11 @@
+# --- Stage 1: Dependencies ---
+FROM golang:1.26.5 AS deps
+WORKDIR /app
+
+# Copy manifest & lockfile to optimize layer cache
+COPY go.mod go.sum* ./
+RUN go mod download
+
 # --- Stage 2: Runner ---
 FROM golang:1.26.5 AS runner
 WORKDIR /app
