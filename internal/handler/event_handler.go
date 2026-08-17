@@ -9,6 +9,7 @@ import (
 )
 
 func CreateEvent(c *gin.Context) {
+	userID, _ := c.Get("user_id")
 	var event model.Event
 	err := c.ShouldBindJSON(&event)
 	if err != nil {
@@ -18,7 +19,7 @@ func CreateEvent(c *gin.Context) {
 		return
 	}
 
-	event.UserID = 1
+	event.UserID = userID.(int)
 
 	config.DB.Create(&event)
 
@@ -60,6 +61,7 @@ func GetEventById(c *gin.Context) {
 }
 
 func UpdateEventById(c *gin.Context) {
+	userID, _ := c.Get("user_id")
 	// Get the event by ID
 	var event model.Event
 	paramID := c.Param("id")
@@ -69,6 +71,13 @@ func UpdateEventById(c *gin.Context) {
 	if eventData != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Event not found.",
+		})
+		return
+	}
+
+	if event.UserID != userID.(int) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "You are not authorized to update this event.",
 		})
 		return
 	}
@@ -92,6 +101,8 @@ func UpdateEventById(c *gin.Context) {
 }
 
 func DeleteEventById(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+
 	var event model.Event
 	paramID := c.Param("id")
 
@@ -99,6 +110,13 @@ func DeleteEventById(c *gin.Context) {
 	if eventData != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Event not found.",
+		})
+		return
+	}
+
+	if event.UserID != userID.(int) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"message": "You are not authorized to update this event.",
 		})
 		return
 	}

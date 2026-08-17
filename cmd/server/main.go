@@ -25,9 +25,6 @@ func main() {
 		api := server.Group("/api/events")
 		api.GET("/", handler.GetEvents)
 		api.GET("/:id", handler.GetEventById)
-		api.POST("", handler.CreateEvent)
-		api.PUT("/:id", handler.UpdateEventById)
-		api.DELETE("/:id", handler.DeleteEventById)
 	}
 
 	{
@@ -40,7 +37,9 @@ func main() {
 		protectedApi := server.Group("/api")
 		protectedApi.Use(middleware.RequireAuth())
 		protectedApi.GET("/auth/me", handler.GetAuthUser)
-
+		protectedApi.POST("/events", handler.CreateEvent)
+		protectedApi.PUT("/events/:id", handler.UpdateEventById)
+		protectedApi.DELETE("/events/:id", handler.DeleteEventById)
 	}
 
 	server.Run(":8080")
