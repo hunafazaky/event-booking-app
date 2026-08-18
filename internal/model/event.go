@@ -14,7 +14,7 @@ type Event struct {
 	Image       string    `json:"image"`
 	ImageID     string    `json:"image_id"`
 	UserID      uint      `json:"user_id"`
-	User        User      `json:"-" gorm:"foreignKey:user_id"`
+	User        User      `json:"user" gorm:"foreignKey:user_id"`
 	DateTime    time.Time `json:"date_time" binding:"required" `
 }
 
