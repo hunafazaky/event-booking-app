@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -61,7 +62,7 @@ func CreateEvent(c *gin.Context) {
 		DateTime:    parseTime,
 		Image:       response.URL,
 		ImageID:     response.FileID,
-		UserID:      userID.(int),
+		UserID:      userID.(uint),
 	}
 
 	config.DB.Create(&event)
@@ -103,75 +104,80 @@ func GetEventById(c *gin.Context) {
 }
 
 func UpdateEventById(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	// Get the event by ID
-	var event model.Event
-	paramID := c.Param("id")
+	// 1. Ambil user_id dari context dengan aman (mencegah panic)
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
 
-	// Find the event by ID
-	eventData := config.DB.First(&event, paramID).Error
-	if eventData != nil {
+	// Cast tipe data secara aman ke uint (menyesuaikan tipe ID di GORM)
+	var currentUserID uint
+	switch v := userIDVal.(type) {
+	case uint:
+		currentUserID = v
+	case int:
+		currentUserID = uint(v)
+	case float64: // Banyak library JWT mengurai number sebagai float64
+		currentUserID = uint(v)
+	}
+
+	paramID := c.Param("id")
+	var event model.Event
+
+	// 2. Cari Event di Database
+	if err := config.DB.First(&event, paramID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Event not found.",
 		})
 		return
 	}
 
-	if event.UserID != userID.(int) {
+	// 3. Cek Hak Akses (Otorisasi)
+	if event.UserID != currentUserID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "You are not authorized to update this event.",
 		})
 		return
 	}
 
-	// Bind the updated event data
-	// var newEvent model.Event
-	// err := c.ShouldBindJSON(&newEvent)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": err.Error(),
-	// 	})
-	// 	return
-	// }
-
-	file, header, err := c.Request.FormFile("image")
+	// 4. Proses Upload Gambar (Opsional)
+	file, header, err := c.Request.FormFile("image") // Shortcut Gin
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			// "error":   err.Error(),
-			"message": "Failed to get image file.",
-		})
-		return
-	}
 
-	fileName := header.Filename
-	iKit := initImageKit()
-	// uploadRes, err :=
-	response, err := iKit.Files.Upload(context.Background(), imagekit.FileUploadParams{
-		File:     file,
-		FileName: fileName,
-	})
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			// "error":   err.Error(),
-			"message": "Failed to upload image.",
-		})
-		return
-	}
-
-	if event.ImageID != "" {
-		err := iKit.Files.Delete(context.Background(), event.ImageID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				// "error":   err.Error(),
-				"message": "Failed to delete image.",
+		if !errors.Is(err, http.ErrMissingFile) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "Failed to process image file",
 			})
 			return
 		}
+	} else {
+		iKit := initImageKit()
+
+		// Upload gambar baru ke ImageKit
+		response, err := iKit.Files.Upload(context.Background(), imagekit.FileUploadParams{
+			File:     file,
+			FileName: header.Filename,
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Failed to upload image.",
+			})
+			return
+		}
+
+		// Jika sebelumnya ada gambar lama, hapus dari ImageKit (Opsional/Best effort)
+		if event.ImageID != "" {
+			_ = iKit.Files.Delete(context.Background(), event.ImageID)
+			// Catatan: Jika hapus gambar lama gagal, proses TETAP dilanjutkan
+		}
+
+		// PERBAIKAN BUG: Selalu update URL & FileID baru di luar blok 'if' hapus
 		event.Image = response.URL
 		event.ImageID = response.FileID
 	}
 
+	// 5. Update Field Teks
 	if name := c.PostForm("name"); name != "" {
 		event.Name = name
 	}
@@ -185,18 +191,23 @@ func UpdateEventById(c *gin.Context) {
 		parseTime, err := time.Parse(time.RFC3339, dateTimeSTR)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				// "error":   err.Error(),
-				"message": "Failed to parse date time.",
+				"message": "Failed to parse date time. Format must be RFC3339.",
 			})
 			return
 		}
 		event.DateTime = parseTime
 	}
 
-	// Update the event with the new data
-	config.DB.Save(&event)
+	// 6. Simpan Perubahan ke Database & Cek Error
+	if err := config.DB.Save(&event).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to update event in database.",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Event updated.",
+		"message": "Event updated successfully.",
 		"data":    event,
 	})
 }
@@ -215,7 +226,7 @@ func DeleteEventById(c *gin.Context) {
 		return
 	}
 
-	if event.UserID != userID.(int) {
+	if event.UserID != userID.(uint) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": "You are not authorized to update this event.",
 		})
