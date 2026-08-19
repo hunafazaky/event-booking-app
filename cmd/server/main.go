@@ -42,6 +42,8 @@ func main() {
 		protectedApi.DELETE("/events/:id", handler.DeleteEventById)
 		protectedApi.GET("/events/user", handler.GetEventsByUser)
 		protectedApi.POST("/booking", handler.CreateBookingEvent)
+		protectedApi.GET("/booking", handler.GetBooks)
+		protectedApi.DELETE("/booking/:id", handler.DeleteBooking)
 	}
 
 	server.Run(":8080")
