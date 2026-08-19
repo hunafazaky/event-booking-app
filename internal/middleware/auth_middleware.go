@@ -16,20 +16,32 @@ func RequireAuth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Access Denied.",
 			})
+			return
 		}
 
 		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-		token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			c.Set("user_id", int(claims["sub"].(float64)))
-			c.Next()
-		} else {
+		if err != nil || token == nil || !token.Valid {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Token is not valid.",
 			})
+			return // <-- PERBAIKAN: Wajib return!
 		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			// PERBAIKAN: Simpan sebagai uint agar konsisten dengan GORM Model & Handler Anda
+			if sub, ok := claims["sub"].(float64); ok {
+				c.Set("user_id", uint(sub))
+				c.Next()
+				return
+			}
+		}
+
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid token claims.",
+		})
 	}
 }
