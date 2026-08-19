@@ -155,6 +155,8 @@ func GetEventById(c *gin.Context) {
 
 	var eventData = config.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "name", "email")
+	}).Preload("Booking").Preload("Booking.User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "name", "email")
 	}).First(&event, paramID).Error
 
 	if eventData != nil {
