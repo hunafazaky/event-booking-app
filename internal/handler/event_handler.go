@@ -170,6 +170,27 @@ func GetEventById(c *gin.Context) {
 	})
 }
 
+func GetEventsByUser(c *gin.Context) {
+	var events []model.Event
+	userID, _ := c.Get("user_id")
+
+	err := config.DB.Preload("User", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id", "name", "email")
+	}).Where("user_id", userID).Find(&events).Error
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Event not found.",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Events retrieved.",
+		"data":    events,
+	})
+}
+
 func UpdateEventById(c *gin.Context) {
 	// 1. Ambil user_id dari context dengan aman (mencegah panic)
 	userIDVal, exists := c.Get("user_id")

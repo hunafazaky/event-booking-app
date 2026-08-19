@@ -40,6 +40,7 @@ func main() {
 		protectedApi.POST("/events", handler.CreateEvent)
 		protectedApi.PUT("/events/:id", handler.UpdateEventById)
 		protectedApi.DELETE("/events/:id", handler.DeleteEventById)
+		protectedApi.GET("/events/user", handler.GetEventsByUser)
 	}
 
 	server.Run(":8080")
