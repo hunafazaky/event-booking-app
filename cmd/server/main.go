@@ -11,12 +11,20 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file. Err: ", err)
+	// .env is only used for local development — in production the real
+	// environment variables are already set, so a missing file here isn't
+	// fatal, it's expected. What DOES matter is config.Load() below, which
+	// validates that whatever the source, the required values are present.
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, relying on process environment variables.")
 	}
 
-	config.ConnectDB()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Invalid configuration: ", err)
+	}
+
+	config.ConnectDB(cfg)
 
 	server := gin.Default()
 	server.SetTrustedProxies([]string{"localhost"})
@@ -46,5 +54,5 @@ func main() {
 		protectedApi.DELETE("/booking/:id", handler.DeleteBooking)
 	}
 
-	server.Run(":8080")
+	server.Run(":" + cfg.Port)
 }
