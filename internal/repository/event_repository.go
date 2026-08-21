@@ -11,7 +11,7 @@ type EventRepository interface {
 	Delete(event *model.Event) error
 	FindAll(search string, page, limit int) (events []model.Event, totalRows, totalPages int64, err error)
 	FindByID(id uint) (*model.Event, error)
-	FindByUserID(userID uint) (events []model.Event, err error)
+	FindByUserID(userID uint) ([]model.Event, error)
 }
 
 type eventRepository struct {
@@ -20,10 +20,6 @@ type eventRepository struct {
 
 func NewEventRepository(db *gorm.DB) EventRepository {
 	return &eventRepository{db: db}
-}
-
-func userSummary(db *gorm.DB) *gorm.DB {
-	return db.Select("id", "name", "email")
 }
 
 func (r *eventRepository) Create(event *model.Event) error {
@@ -78,10 +74,11 @@ func (r *eventRepository) FindByID(id uint) (*model.Event, error) {
 	return &event, err
 }
 
-func (r *eventRepository) FindByUserID(userID uint) (events []model.Event, err error) {
-	err = r.db.
+func (r *eventRepository) FindByUserID(userID uint) ([]model.Event, error) {
+	var events []model.Event
+	err := r.db.
 		Preload("User", userSummary).
 		Where("user_id", userID).
 		Find(&events).Error
-	return
+	return events, err
 }

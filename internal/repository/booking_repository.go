@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/hunafazaky/event-booking-app/internal/model"
 	"gorm.io/gorm"
 )
@@ -9,8 +11,8 @@ type BookingRepository interface {
 	Create(booking *model.Booking) error
 	Delete(booking *model.Booking) error
 	FindByID(id string) (*model.Booking, error)
-	FindByUserID(userID uint) (bookings []model.Booking, err error)
-	ExistsByUserAndEvent(userID, eventID uint) (status bool, err error)
+	FindByUserID(userID uint) ([]model.Booking, error)
+	ExistsByUserAndEvent(userID, eventID uint) (bool, error)
 }
 
 type bookingRepository struct {
@@ -34,18 +36,27 @@ func (r *bookingRepository) FindByID(id string) (*model.Booking, error) {
 	return &booking, r.db.First(&booking, id).Error
 }
 
-func (r *bookingRepository) FindByUserID(userID uint) (bookings []model.Booking, err error) {
-	err = r.db.
+func (r *bookingRepository) FindByUserID(userID uint) ([]model.Booking, error) {
+	var bookings []model.Booking
+
+	err := r.db.
 		Preload("Event").
 		Preload("Event.User", userSummary).
 		Where("user_id = ?", userID).
 		Find(&bookings).Error
-	return
+	return bookings, err
 }
 
-func (r *bookingRepository) ExistsByUserAndEvent(userID, eventID uint) (status bool, err error) {
-	err = r.db.
+func (r *bookingRepository) ExistsByUserAndEvent(userID, eventID uint) (bool, error) {
+	err := r.db.
 		Where("user_id = ? AND event_id = ?", userID, eventID).
 		First(&model.Booking{}).Error
-	return err == nil, err
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
