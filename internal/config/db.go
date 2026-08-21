@@ -18,7 +18,7 @@ var DB *gorm.DB
 // prefer explicit dependency injection (repositories, tests) can use it
 // directly instead of reaching for the global.
 func ConnectDB(cfg *Config) *gorm.DB {
-	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.DSN()), &gorm.Config{TranslateError: true})
 	if err != nil {
 		log.Fatal("Failed to connect to the database. Err:", err)
 	}
