@@ -16,7 +16,7 @@ type Event struct {
 	UserID      uint      `json:"user_id"`
 	User        User      `json:"user" gorm:"foreignKey:user_id"`
 	DateTime    time.Time `json:"date_time" binding:"required" `
-	Booking     []Book    `json:"book_list" gorm:"foreignKey:event_id"`
+	Booking     []Booking `json:"booking_list" gorm:"foreignKey:event_id"`
 }
 
 var events []Event = []Event{}

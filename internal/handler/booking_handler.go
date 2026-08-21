@@ -39,7 +39,7 @@ func CreateBookingEvent(c *gin.Context) {
 	}
 
 	var input BookingInput
-	var book model.Book
+	var booking model.Booking
 
 	// 3. Validasi JSON Input
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -48,20 +48,20 @@ func CreateBookingEvent(c *gin.Context) {
 	}
 
 	// 4. Cek apakah booking sudah ada
-	bookExist := config.DB.Where("user_id = ? AND event_id = ?", userID, input.EventID).First(&book).Error
-	if bookExist == nil {
+	bookingExist := config.DB.Where("user_id = ? AND event_id = ?", userID, input.EventID).First(&booking).Error
+	if bookingExist == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Booking already exists"})
 		return
 	}
 
 	// 5. Buat kode booking & simpan
-	bookCode := fmt.Sprintf("BK-%sE%dU%d", time.Now().Format("20060102"), input.EventID, userID)
+	bookingCode := fmt.Sprintf("BK-%sE%dU%d", time.Now().Format("20060102"), input.EventID, userID)
 
-	bookData := model.Book{
-		Phone:    input.Phone,
-		EventID:  input.EventID,
-		BookCode: bookCode,
-		UserID:   userID,
+	bookData := model.Booking{
+		Phone:       input.Phone,
+		EventID:     input.EventID,
+		BookingCode: bookingCode,
+		UserID:      userID,
 	}
 
 	if err := config.DB.Create(&bookData).Error; err != nil {
@@ -73,7 +73,7 @@ func CreateBookingEvent(c *gin.Context) {
 }
 
 func GetBooks(c *gin.Context) {
-	var book []model.Book
+	var booking []model.Booking
 	userIDVal, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -96,19 +96,19 @@ func GetBooks(c *gin.Context) {
 
 	err := config.DB.Preload("Event").Preload("Event.User", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id", "name", "email")
-	}).Where("user_id = ?", userID).Find(&book).Error
+	}).Where("user_id = ?", userID).Find(&booking).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Booking not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"booking": book,
+		"booking": booking,
 	})
 }
 
 func DeleteBooking(c *gin.Context) {
-	var book model.Book
+	var booking model.Booking
 	userIDVal, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -130,18 +130,18 @@ func DeleteBooking(c *gin.Context) {
 	}
 
 	paramID := c.Param("id")
-	err := config.DB.First(&book, paramID).Error
+	err := config.DB.First(&booking, paramID).Error
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Booking not found"})
 		return
 	}
 
-	if book.UserID != userID {
+	if booking.UserID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden"})
 		return
 	}
 
-	err = config.DB.Unscoped().Delete(&book).Error
+	err = config.DB.Unscoped().Delete(&booking).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to delete booking"})
 		return
