@@ -30,16 +30,6 @@ func CreateEvent(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// var event model.Event
-	// if err := c.ShouldBindJSON(&event); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{
-	// 		"error": err.Error(),
-	// 	})
-	// 	return
-	// }
-
-	// event.UserID = userID.(int)
-
 	fileName := header.Filename
 	iKit := initImageKit()
 	// uploadRes, err :=
