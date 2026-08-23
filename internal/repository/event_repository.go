@@ -45,13 +45,6 @@ func (r *eventRepository) FindAll(search string, page, limit int) (events []mode
 	// Total Rows
 	query.Count(&totalRows)
 
-	// Total Pages
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 {
-		limit = 6
-	}
 	totalPages = (totalRows + int64(limit) - 1) / int64(limit)
 
 	// Event & Error

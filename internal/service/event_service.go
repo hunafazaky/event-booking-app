@@ -24,8 +24,11 @@ type CreateEventInput struct {
 
 type EventService interface {
 	Create(userID uint, input CreateEventInput) (*dto.EventResponse, error)
-	// List, GetByID, GetByUser, Update, Delete — same pattern as UserService,
-	// you'll add these yourself once Create/Update are reviewed.
+	List(search string, page, limit int) ([]dto.EventResponse, dto.EventListMeta, error)
+	GetByID(id uint) (*dto.EventDetailResponse, error)
+	// GetByUser(userID uint) ([]dto.EventResponse, error)
+	// Update(userID, eventID uint, input UpdateEventInput) (*dto.EventResponse, error)
+	// Delete(userID, eventID uint) error
 }
 
 type eventService struct {
@@ -81,4 +84,87 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 		// has them) — worth deciding which once you get here.
 	}
 	return &response, nil
+}
+
+func (s *eventService) List(search string, page, limit int) ([]dto.EventResponse, dto.EventListMeta, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 6
+	}
+
+	events, totalRows, totalPage, err := s.repo.FindAll(search, page, limit)
+	if err != nil {
+		return nil, dto.EventListMeta{}, apperror.Internal("Failed to load data", err)
+	}
+
+	eventResponse := make([]dto.EventResponse, 0, len(events))
+	for _, item := range events {
+		eventResponse = append(eventResponse, dto.EventResponse{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Location:    item.Location,
+			Image:       item.Image,
+			DateTime:    item.DateTime,
+			User: dto.UserResponse{
+				ID:    item.User.ID,
+				Name:  item.User.Name,
+				Email: item.User.Email,
+			},
+			CreatedAt: item.CreatedAt,
+		})
+	}
+
+	eventListMeta := dto.EventListMeta{
+		Page:      page,
+		Limit:     limit,
+		TotalRows: totalRows,
+		TotalPage: totalPage,
+	}
+
+	return eventResponse, eventListMeta, nil
+}
+
+func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
+	event, err := s.repo.FindByID(id)
+	if err != nil {
+		return nil, apperror.Internal("Failed to load data", err)
+	}
+
+	eventResponse := dto.EventResponse{
+		ID:          event.ID,
+		Name:        event.Name,
+		Description: event.Description,
+		Location:    event.Location,
+		Image:       event.Image,
+		DateTime:    event.DateTime,
+		User: dto.UserResponse{
+			ID:    event.User.ID,
+			Name:  event.User.Name,
+			Email: event.User.Email,
+		},
+		CreatedAt: event.CreatedAt,
+	}
+
+	bookingSummaryResponse := make([]dto.BookingSummaryResponse, 0, len(event.Booking))
+	for _, item := range event.Booking {
+		bookingSummaryResponse = append(bookingSummaryResponse, dto.BookingSummaryResponse{
+			ID:          item.ID,
+			BookingCode: item.BookingCode,
+			Phone:       item.Phone,
+			User: dto.UserResponse{
+				ID:    event.User.ID,
+				Name:  event.User.Name,
+				Email: event.User.Email,
+			},
+		})
+	}
+
+	eventDetailResponse := dto.EventDetailResponse{
+		EventResponse: eventResponse,
+		Bookings:      bookingSummaryResponse,
+	}
+	return &eventDetailResponse, nil
 }
