@@ -71,12 +71,13 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 	}
 
 	if err := s.repo.Create(&event); err != nil {
-		// If the DB write fails AFTER a successful upload, you now have an
-		// orphaned file sitting in ImageKit with nothing pointing to it.
-		// Worth a `_ = s.uploader.Delete(imageID)` here as best-effort
-		// cleanup — same "don't fail the whole request over a cleanup
-		// step" reasoning your original Update handler already used for
-		// deleting the OLD image.
+		// The upload already succeeded but the DB write didn't — clean up
+		// the now-orphaned file rather than leaving it in ImageKit forever.
+		// Best-effort: if THIS also fails, we still report the original
+		// DB error to the client, not the cleanup failure. Once Phase 9
+		// adds logging, this is exactly the spot that should log instead
+		// of silently discarding the cleanup error.
+		_ = s.uploader.Delete(imageID)
 		return nil, apperror.Internal("failed to create event", err)
 	}
 
@@ -88,11 +89,11 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 		Image:       event.Image,
 		DateTime:    event.DateTime,
 		CreatedAt:   event.CreatedAt,
-		// event.User is a zero-value User here — repo.Create doesn't
-		// populate the association. You'll want a repo.FindByID call
-		// after Create, OR just build UserResponse from data you already
-		// have (userID + the fields from the JWT context, if the handler
-		// has them) — worth deciding which once you get here.
+		// Built from data already available (the authenticated userID) —
+		// no extra repo.FindByID round-trip just to fill in a response
+		// field. Name/Email are intentionally blank here: the service
+		// never received them, only the ID.
+		User: dto.UserResponse{ID: userID},
 	}
 	return &response, nil
 }
@@ -211,14 +212,26 @@ func (s *eventService) Update(userID, eventID uint, input UpdateEventInput) (*dt
 
 	// file handler
 	if input.Image != nil {
+		// Capture the OLD file ID before we overwrite it on event — once
+		// event.ImageID is reassigned below, this is the only reference
+		// to the file we're about to replace.
+		oldImageID := event.ImageID
+
 		imageURL, imageID, err := s.uploader.Upload(input.Image, input.ImageName)
 		if err != nil {
 			return nil, apperror.Internal("failed to upload image", err)
 		}
-		// TODO: delete the OLD image (event.ImageID) from ImageKit here —
-		// same orphaned-file concern as Create, now on the "replace" side.
 		event.Image = imageURL
 		event.ImageID = imageID
+
+		// Delete the old file only AFTER the new upload succeeds — if
+		// upload had failed above, we return before reaching here, so the
+		// old (still valid) image is never touched. Best-effort: a
+		// failure to delete the old file doesn't fail this request: the
+		// update itself already succeeded from the user's perspective.
+		if oldImageID != "" {
+			_ = s.uploader.Delete(oldImageID)
+		}
 	}
 
 	// replace data
@@ -247,6 +260,7 @@ func (s *eventService) Update(userID, eventID uint, input UpdateEventInput) (*dt
 		Image:       event.Image,
 		DateTime:    event.DateTime,
 		CreatedAt:   event.CreatedAt,
+		User:        dto.UserResponse{ID: userID},
 	}
 
 	return &eventResponse, nil
