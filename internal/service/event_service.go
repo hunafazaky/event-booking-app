@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"io"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/hunafazaky/event-booking-app/internal/dto"
 	"github.com/hunafazaky/event-booking-app/internal/model"
 	"github.com/hunafazaky/event-booking-app/internal/repository"
+	"gorm.io/gorm"
 )
 
 // CreateEventInput is what the handler builds from the multipart form and
@@ -22,13 +24,22 @@ type CreateEventInput struct {
 	ImageName   string
 }
 
+type UpdateEventInput struct {
+	Name        string
+	Description string
+	Location    string
+	DateTime    *time.Time
+	Image       io.Reader
+	ImageName   string
+}
+
 type EventService interface {
 	Create(userID uint, input CreateEventInput) (*dto.EventResponse, error)
 	List(search string, page, limit int) ([]dto.EventResponse, dto.EventListMeta, error)
 	GetByID(id uint) (*dto.EventDetailResponse, error)
-	// GetByUser(userID uint) ([]dto.EventResponse, error)
-	// Update(userID, eventID uint, input UpdateEventInput) (*dto.EventResponse, error)
-	// Delete(userID, eventID uint) error
+	GetByUser(userID uint) ([]dto.EventResponse, error)
+	Update(userID, eventID uint, input UpdateEventInput) (*dto.EventResponse, error)
+	Delete(userID, eventID uint) error
 }
 
 type eventService struct {
@@ -44,7 +55,7 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 	// Upload FIRST, before touching the database. If the upload fails,
 	// there's nothing to roll back — we simply never created a DB row
 	// with a broken/missing image reference.
-	url, fileID, err := s.uploader.Upload(input.Image, input.ImageName)
+	imageURL, imageID, err := s.uploader.Upload(input.Image, input.ImageName)
 	if err != nil {
 		return nil, apperror.Internal("failed to upload image", err)
 	}
@@ -54,15 +65,15 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 		Description: input.Description,
 		Location:    input.Location,
 		DateTime:    input.DateTime,
-		Image:       url,
-		ImageID:     fileID,
+		Image:       imageURL,
+		ImageID:     imageID,
 		UserID:      userID,
 	}
 
 	if err := s.repo.Create(&event); err != nil {
 		// If the DB write fails AFTER a successful upload, you now have an
 		// orphaned file sitting in ImageKit with nothing pointing to it.
-		// Worth a `_ = s.uploader.Delete(fileID)` here as best-effort
+		// Worth a `_ = s.uploader.Delete(imageID)` here as best-effort
 		// cleanup — same "don't fail the whole request over a cleanup
 		// step" reasoning your original Update handler already used for
 		// deleting the OLD image.
@@ -96,7 +107,7 @@ func (s *eventService) List(search string, page, limit int) ([]dto.EventResponse
 
 	events, totalRows, totalPage, err := s.repo.FindAll(search, page, limit)
 	if err != nil {
-		return nil, dto.EventListMeta{}, apperror.Internal("Failed to load data", err)
+		return nil, dto.EventListMeta{}, apperror.Internal("failed to load data", err)
 	}
 
 	eventResponse := make([]dto.EventResponse, 0, len(events))
@@ -108,12 +119,8 @@ func (s *eventService) List(search string, page, limit int) ([]dto.EventResponse
 			Location:    item.Location,
 			Image:       item.Image,
 			DateTime:    item.DateTime,
-			User: dto.UserResponse{
-				ID:    item.User.ID,
-				Name:  item.User.Name,
-				Email: item.User.Email,
-			},
-			CreatedAt: item.CreatedAt,
+			User:        toUserResponse(item.User),
+			CreatedAt:   item.CreatedAt,
 		})
 	}
 
@@ -130,7 +137,10 @@ func (s *eventService) List(search string, page, limit int) ([]dto.EventResponse
 func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
 	event, err := s.repo.FindByID(id)
 	if err != nil {
-		return nil, apperror.Internal("Failed to load data", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apperror.NotFound("event not found")
+		}
+		return nil, apperror.Internal("failed to load event", err)
 	}
 
 	eventResponse := dto.EventResponse{
@@ -140,12 +150,8 @@ func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
 		Location:    event.Location,
 		Image:       event.Image,
 		DateTime:    event.DateTime,
-		User: dto.UserResponse{
-			ID:    event.User.ID,
-			Name:  event.User.Name,
-			Email: event.User.Email,
-		},
-		CreatedAt: event.CreatedAt,
+		User:        toUserResponse(event.User),
+		CreatedAt:   event.CreatedAt,
 	}
 
 	bookingSummaryResponse := make([]dto.BookingSummaryResponse, 0, len(event.Booking))
@@ -154,11 +160,7 @@ func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
 			ID:          item.ID,
 			BookingCode: item.BookingCode,
 			Phone:       item.Phone,
-			User: dto.UserResponse{
-				ID:    event.User.ID,
-				Name:  event.User.Name,
-				Email: event.User.Email,
-			},
+			User:        toUserResponse(item.User),
 		})
 	}
 
@@ -167,4 +169,106 @@ func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
 		Bookings:      bookingSummaryResponse,
 	}
 	return &eventDetailResponse, nil
+}
+
+func (s *eventService) GetByUser(userID uint) ([]dto.EventResponse, error) {
+	events, err := s.repo.FindByUserID(userID)
+	if err != nil {
+		return nil, apperror.Internal("failed to load events", err)
+	}
+
+	listEventResponse := make([]dto.EventResponse, 0, len(events))
+	for _, item := range events {
+		listEventResponse = append(listEventResponse, dto.EventResponse{
+			ID:          item.ID,
+			Name:        item.Name,
+			Description: item.Description,
+			Location:    item.Location,
+			Image:       item.Image,
+			DateTime:    item.DateTime,
+			User:        toUserResponse(item.User),
+			CreatedAt:   item.CreatedAt,
+		})
+	}
+
+	return listEventResponse, nil
+}
+
+func (s *eventService) Update(userID, eventID uint, input UpdateEventInput) (*dto.EventResponse, error) {
+	// get current event
+	event, err := s.repo.FindByID(eventID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, apperror.NotFound("event not found")
+		}
+		return nil, apperror.Internal("failed to load event", err)
+	}
+
+	// verify permission
+	if event.UserID != userID {
+		return nil, apperror.Forbidden("you're not authorized")
+	}
+
+	// file handler
+	if input.Image != nil {
+		imageURL, imageID, err := s.uploader.Upload(input.Image, input.ImageName)
+		if err != nil {
+			return nil, apperror.Internal("failed to upload image", err)
+		}
+		// TODO: delete the OLD image (event.ImageID) from ImageKit here —
+		// same orphaned-file concern as Create, now on the "replace" side.
+		event.Image = imageURL
+		event.ImageID = imageID
+	}
+
+	// replace data
+	if input.Name != "" {
+		event.Name = input.Name
+	}
+	if input.Description != "" {
+		event.Description = input.Description
+	}
+	if input.Location != "" {
+		event.Location = input.Location
+	}
+	if input.DateTime != nil {
+		event.DateTime = *input.DateTime
+	}
+
+	if err := s.repo.Update(event); err != nil {
+		return nil, apperror.Internal("failed to update event", err)
+	}
+
+	eventResponse := dto.EventResponse{
+		ID:          event.ID,
+		Name:        event.Name,
+		Description: event.Description,
+		Location:    event.Location,
+		Image:       event.Image,
+		DateTime:    event.DateTime,
+		CreatedAt:   event.CreatedAt,
+	}
+
+	return &eventResponse, nil
+}
+
+func (s *eventService) Delete(userID, eventID uint) error {
+	event, err := s.repo.FindByID(eventID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return apperror.NotFound("event not found")
+		}
+		return apperror.Internal("failed to load event", err)
+	}
+
+	// verify permission
+	if event.UserID != userID {
+		return apperror.Forbidden("you're not authorized")
+	}
+
+	if err := s.repo.Delete(event); err != nil {
+		return apperror.Internal("failed to delete event", err)
+	}
+
+	return nil
 }
