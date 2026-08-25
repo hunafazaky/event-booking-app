@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"io"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/hunafazaky/event-booking-app/internal/dto"
 	"github.com/hunafazaky/event-booking-app/internal/model"
 	"github.com/hunafazaky/event-booking-app/internal/repository"
-	"gorm.io/gorm"
 )
 
 // CreateEventInput is what the handler builds from the multipart form and
@@ -138,10 +136,7 @@ func (s *eventService) List(search string, page, limit int) ([]dto.EventResponse
 func (s *eventService) GetByID(id uint) (*dto.EventDetailResponse, error) {
 	event, err := s.repo.FindByID(id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apperror.NotFound("event not found")
-		}
-		return nil, apperror.Internal("failed to load event", err)
+		return nil, mapLookupError(err, "event not found", "failed to load event")
 	}
 
 	eventResponse := dto.EventResponse{
@@ -199,10 +194,7 @@ func (s *eventService) Update(userID, eventID uint, input UpdateEventInput) (*dt
 	// get current event
 	event, err := s.repo.FindByID(eventID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apperror.NotFound("event not found")
-		}
-		return nil, apperror.Internal("failed to load event", err)
+		return nil, mapLookupError(err, "event not found", "failed to load event")
 	}
 
 	// verify permission
@@ -269,10 +261,7 @@ func (s *eventService) Update(userID, eventID uint, input UpdateEventInput) (*dt
 func (s *eventService) Delete(userID, eventID uint) error {
 	event, err := s.repo.FindByID(eventID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return apperror.NotFound("event not found")
-		}
-		return apperror.Internal("failed to load event", err)
+		return mapLookupError(err, "event not found", "failed to load event")
 	}
 
 	// verify permission

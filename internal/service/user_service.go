@@ -92,10 +92,7 @@ func (s *userService) SignIn(input model.InputSignIn) (*dto.SignInResponse, erro
 func (s *userService) GetAuthUser(userID uint) (*dto.UserResponse, error) {
 	user, err := s.repo.FindByID(userID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, apperror.NotFound("user not found")
-		}
-		return nil, apperror.Internal("failed to fetch user", err)
+		return nil, mapLookupError(err, "user not found", "failed to load user")
 	}
 
 	response := dto.UserResponse{

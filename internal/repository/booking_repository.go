@@ -10,7 +10,7 @@ import (
 type BookingRepository interface {
 	Create(booking *model.Booking) error
 	Delete(booking *model.Booking) error
-	FindByID(id string) (*model.Booking, error)
+	FindByID(id uint) (*model.Booking, error)
 	FindByUserID(userID uint) ([]model.Booking, error)
 	ExistsByUserAndEvent(userID, eventID uint) (bool, error)
 }
@@ -31,7 +31,7 @@ func (r *bookingRepository) Delete(booking *model.Booking) error {
 	return r.db.Delete(booking).Error
 }
 
-func (r *bookingRepository) FindByID(id string) (*model.Booking, error) {
+func (r *bookingRepository) FindByID(id uint) (*model.Booking, error) {
 	var booking model.Booking
 	return &booking, r.db.First(&booking, id).Error
 }
