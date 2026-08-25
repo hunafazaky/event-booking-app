@@ -10,8 +10,23 @@ import (
 	"github.com/hunafazaky/event-booking-app/internal/router"
 	"github.com/hunafazaky/event-booking-app/internal/service"
 	"github.com/joho/godotenv"
+
+	// documentation
+	_ "github.com/hunafazaky/event-booking-app/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title           Event Booking API
+// @version         1.0
+// @description     API for browsing events and managing bookings.
+// @host            localhost:8080
+// @BasePath        /api
+
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Type "Bearer" followed by a space and your JWT.
 func main() {
 	// .env is only used for local development — in production the real
 	// environment variables are already set, so a missing file here isn't
@@ -48,6 +63,7 @@ func main() {
 	server.SetTrustedProxies([]string{"localhost"})
 
 	router.Setup(server, cfg, userHandler, eventHandler, bookingHandler)
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.Run(":" + cfg.Port)
 }

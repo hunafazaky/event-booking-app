@@ -16,6 +16,17 @@ func NewUserHandler(service service.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
+// SignUp godoc
+// @Summary      Register a new user
+// @Description  Creates a new user account.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        input  body      service.SignUpInput  true  "Sign up payload"
+// @Success      201    {object}  response.Envelope{data=dto.UserResponse}
+// @Failure      400    {object}  response.Envelope
+// @Failure      409    {object}  response.Envelope
+// @Router       /auth/signup [post]
 func (h *UserHandler) SignUp(c *gin.Context) {
 	var input service.SignUpInput
 	if err := c.ShouldBindJSON(&input); err != nil {

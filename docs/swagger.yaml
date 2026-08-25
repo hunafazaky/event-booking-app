@@ -1,0 +1,373 @@
+basePath: /api
+definitions:
+  dto.BookingSummaryResponse:
+    properties:
+      booking_code:
+        type: string
+      id:
+        type: integer
+      phone:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.EventDetailResponse:
+    properties:
+      bookings:
+        items:
+          $ref: '#/definitions/dto.BookingSummaryResponse'
+        type: array
+      created_at:
+        type: string
+      date_time:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.EventListMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total_page:
+        type: integer
+      total_rows:
+        type: integer
+    type: object
+  dto.EventResponse:
+    properties:
+      created_at:
+        type: string
+      date_time:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  response.Envelope:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      meta: {}
+      success:
+        type: boolean
+    type: object
+  service.SignUpInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for browsing events and managing bookings.
+  title: Event Booking API
+  version: "1.0"
+paths:
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account.
+      parameters:
+      - description: Sign up payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.SignUpInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      summary: Register a new user
+      tags:
+      - auth
+  /events:
+    get:
+      description: Returns a paginated list of events, optionally filtered by search
+        term.
+      parameters:
+      - description: Search by name or description
+        in: query
+        name: search
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Results per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.EventResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/dto.EventListMeta'
+              type: object
+      summary: List events
+      tags:
+      - events
+    post:
+      consumes:
+      - multipart/form-data
+      description: Returns the posted event.
+      parameters:
+      - description: Event name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Event description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Event location
+        in: formData
+        name: location
+        required: true
+        type: string
+      - description: RFC3339 date_time
+        in: formData
+        name: date_time
+        required: true
+        type: string
+      - description: Event image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.EventResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Create new event
+      tags:
+      - events
+  /events/{id}:
+    delete:
+      description: Returns a success message.
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete event
+      tags:
+      - events
+    get:
+      description: Returns an event based on id parameter.
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.EventDetailResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      summary: Get event
+      tags:
+      - events
+    put:
+      consumes:
+      - multipart/form-data
+      description: Returns the updated event.
+      parameters:
+      - description: Event name
+        in: formData
+        name: name
+        type: string
+      - description: Event description
+        in: formData
+        name: description
+        type: string
+      - description: Event location
+        in: formData
+        name: location
+        type: string
+      - description: RFC3339 date_time
+        in: formData
+        name: date_time
+        type: string
+      - description: Event image
+        in: formData
+        name: image
+        type: file
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.EventResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update event
+      tags:
+      - events
+  /events/mine:
+    get:
+      description: Returns a paginated list of events created by authorized user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.EventResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List events
+      tags:
+      - events
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and your JWT.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

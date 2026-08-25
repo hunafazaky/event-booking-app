@@ -19,6 +19,21 @@ func NewEventHandler(service service.EventService) *EventHandler {
 	return &EventHandler{service: service}
 }
 
+// CreateEvent   godoc
+// @Summary      Create new event
+// @Description  Returns the posted event.
+// @Security 		 BearerAuth
+// @Tags         events
+// @Accept  		 mpfd
+// @Param   		 name      		formData  string  true   "Event name"
+// @Param   		 description  formData  string  true   "Event description"
+// @Param   		 location 	  formData  string  true   "Event location"
+// @Param   		 date_time 		formData  string  true   "RFC3339 date_time"
+// @Param   		 image     		formData  file    true   "Event image"
+// @Produce      json
+// @Success      201     			{object}  response.Envelope{data=dto.EventResponse}
+// @Failure			 400		 			{object}	response.Envelope
+// @Router       /events 			[post]
 func (h *EventHandler) CreateEvent(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -57,6 +72,16 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "event created successfully", event)
 }
 
+// GetEvents 		 godoc
+// @Summary      List events
+// @Description  Returns a paginated list of events, optionally filtered by search term.
+// @Tags         events
+// @Produce      json
+// @Param        search  			query     string  false  "Search by name or description"
+// @Param        page   		 	query     int     false  "Page number"
+// @Param        limit   			query     int     false  "Results per page"
+// @Success      200     			{object}  response.Envelope{data=[]dto.EventResponse,meta=dto.EventListMeta}
+// @Router       /events 			[get]
 func (h *EventHandler) GetEvents(c *gin.Context) {
 	page, _ := strconv.Atoi(c.Query("page"))
 	limit, _ := strconv.Atoi(c.Query("limit"))
@@ -70,6 +95,15 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 	response.SuccessWithMeta(c, http.StatusOK, "data events retrieved", events, meta)
 }
 
+// GetEventByID  godoc
+// @Summary      Get event
+// @Description  Returns an event based on id parameter.
+// @Tags         events
+// @Param   		 id   				path   		int  		true  	"Event ID"
+// @Produce      json
+// @Success      200     			{object}  response.Envelope{data=dto.EventDetailResponse}
+// @Failure      404     			{object}  response.Envelope
+// @Router       /events/{id} [get]
 func (h *EventHandler) GetEventByID(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -86,7 +120,15 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "data event retrieved", event)
 }
 
-func (h *EventHandler) GetMyEvents(c *gin.Context) {
+// GetEventsMine godoc
+// @Summary      List events
+// @Description  Returns a paginated list of events created by authorized user.
+// @Security 		 BearerAuth
+// @Tags         events
+// @Produce      json
+// @Success      200     			{object}  response.Envelope{data=[]dto.EventResponse}
+// @Router       /events/mine [get]
+func (h *EventHandler) GetEventsMine(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
 		response.FromError(c, err)
@@ -102,6 +144,24 @@ func (h *EventHandler) GetMyEvents(c *gin.Context) {
 	response.Success(c, http.StatusOK, "data event retrieved", events)
 }
 
+// UpdateEvent 	 godoc
+// @Summary      Update event
+// @Description  Returns the updated event.
+// @Security 		 BearerAuth
+// @Tags         events
+// @Accept  		 mpfd
+// @Param   		 name      		formData  string  false   "Event name"
+// @Param   		 description  formData  string  false   "Event description"
+// @Param   		 location 	  formData  string  false   "Event location"
+// @Param   		 date_time 		formData  string  false   "RFC3339 date_time"
+// @Param   		 image     		formData  file    false   "Event image"
+// @Param   		 id   				path   		int  		true  	"Event ID"
+// @Produce      json
+// @Success      200     			{object}  response.Envelope{data=dto.EventResponse}
+// @Failure      400     			{object}  response.Envelope
+// @Failure      403     			{object}  response.Envelope
+// @Failure      404     			{object}  response.Envelope
+// @Router       /events/{id} [put]
 func (h *EventHandler) UpdateEvent(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -156,6 +216,17 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 	response.Success(c, http.StatusOK, "data event updated", event)
 }
 
+// DeleteEvent 	 godoc
+// @Summary      Delete event
+// @Description  Returns a success message.
+// @Security 		 BearerAuth
+// @Tags         events
+// @Param   		 id   				path   		int  		true  	"Event ID"
+// @Produce      json
+// @Success      200     			{object}  response.Envelope
+// @Failure      403     			{object}  response.Envelope
+// @Failure      404     			{object}  response.Envelope
+// @Router       /events/{id} [delete]
 func (h *EventHandler) DeleteEvent(c *gin.Context) {
 	eventID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

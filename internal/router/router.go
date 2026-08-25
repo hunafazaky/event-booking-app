@@ -38,7 +38,7 @@ func Setup(
 		protectedApi.POST("/events", eventHandler.CreateEvent)
 		protectedApi.PUT("/events/:id", eventHandler.UpdateEvent)
 		protectedApi.DELETE("/events/:id", eventHandler.DeleteEvent)
-		protectedApi.GET("/events/me", eventHandler.GetMyEvents)
+		protectedApi.GET("/events/mine", eventHandler.GetEventsMine)
 		protectedApi.POST("/bookings", bookingHandler.CreateBooking)
 		protectedApi.GET("/bookings", bookingHandler.GetBooks)
 		protectedApi.DELETE("/bookings/:id", bookingHandler.DeleteBooking)
