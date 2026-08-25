@@ -91,7 +91,7 @@ func (s *eventService) Create(userID uint, input CreateEventInput) (*dto.EventRe
 		// no extra repo.FindByID round-trip just to fill in a response
 		// field. Name/Email are intentionally blank here: the service
 		// never received them, only the ID.
-		User: dto.UserResponse{ID: userID},
+		User: toUserResponse(event.User),
 	}
 	return &response, nil
 }

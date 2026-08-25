@@ -23,7 +23,10 @@ func NewEventRepository(db *gorm.DB) EventRepository {
 }
 
 func (r *eventRepository) Create(event *model.Event) error {
-	return r.db.Create(event).Error
+	if err := r.db.Create(event).Error; err != nil {
+		return err
+	}
+	return r.db.Preload("User", userSummary).First(event, event.ID).Error
 }
 
 func (r *eventRepository) Update(event *model.Event) error {

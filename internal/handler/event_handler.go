@@ -33,7 +33,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 	}
 	defer file.Close()
 
-	dateTime, err := time.Parse(time.RFC3339, c.PostForm("datetime"))
+	dateTime, err := time.Parse(time.RFC3339, c.PostForm("date_time"))
 	if err != nil {
 		response.Fail(c, http.StatusBadRequest, "invalid datetime format")
 		return
@@ -86,7 +86,7 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "data event retrieved", event)
 }
 
-func (h *EventHandler) GetEventByUser(c *gin.Context) {
+func (h *EventHandler) GetMyEvents(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
 		response.FromError(c, err)
@@ -134,8 +134,8 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	if c.PostForm("datetime") != "" {
-		dateTime, err := time.Parse(time.RFC3339, c.PostForm("datetime"))
+	if c.PostForm("date_time") != "" {
+		dateTime, err := time.Parse(time.RFC3339, c.PostForm("date_time"))
 		if err != nil {
 			response.Fail(c, http.StatusBadRequest, "invalid datetime format")
 			return

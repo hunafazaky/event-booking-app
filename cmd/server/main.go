@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hunafazaky/event-booking-app/internal/config"
 	"github.com/hunafazaky/event-booking-app/internal/handler"
-	"github.com/hunafazaky/event-booking-app/internal/middleware"
+	"github.com/hunafazaky/event-booking-app/internal/repository"
+	"github.com/hunafazaky/event-booking-app/internal/router"
+	"github.com/hunafazaky/event-booking-app/internal/service"
 	"github.com/joho/godotenv"
 )
 
@@ -24,35 +26,28 @@ func main() {
 		log.Fatal("Invalid configuration: ", err)
 	}
 
-	config.ConnectDB(cfg)
+	db := config.ConnectDB(cfg)
+
+	// Repositories
+	userRepo := repository.NewUserRepository(db)
+	eventRepo := repository.NewEventRepository(db)
+	bookingRepo := repository.NewBookingRepository(db)
+
+	// Services — note the extra dependencies beyond just their repo
+	uploader := service.NewImageKitUploader(cfg.ImageKitPrivateKey)
+	userService := service.NewUserService(userRepo, cfg.JWTSecret)
+	eventService := service.NewEventService(eventRepo, uploader)
+	bookingService := service.NewBookingService(bookingRepo, eventRepo)
+
+	// Handlers
+	userHandler := handler.NewUserHandler(userService)
+	eventHandler := handler.NewEventHandler(eventService)
+	bookingHandler := handler.NewBookingHandler(bookingService)
 
 	server := gin.Default()
 	server.SetTrustedProxies([]string{"localhost"})
 
-	{
-		api := server.Group("/api/events")
-		api.GET("/", handler.GetEvents)
-		api.GET("/:id", handler.GetEventById)
-	}
-
-	{
-		api := server.Group("/api/auth")
-		api.POST("/signup", handler.SignUpUser)
-		api.POST("/signin", handler.SignInUser)
-	}
-
-	{
-		protectedApi := server.Group("/api")
-		protectedApi.Use(middleware.RequireAuth())
-		protectedApi.GET("/auth/me", handler.GetAuthUser)
-		protectedApi.POST("/events", handler.CreateEvent)
-		protectedApi.PUT("/events/:id", handler.UpdateEventById)
-		protectedApi.DELETE("/events/:id", handler.DeleteEventById)
-		protectedApi.GET("/events/user", handler.GetEventsByUser)
-		protectedApi.POST("/booking", handler.CreateBookingEvent)
-		protectedApi.GET("/booking", handler.GetBooks)
-		protectedApi.DELETE("/booking/:id", handler.DeleteBooking)
-	}
+	router.Setup(server, cfg, userHandler, eventHandler, bookingHandler)
 
 	server.Run(":" + cfg.Port)
 }
