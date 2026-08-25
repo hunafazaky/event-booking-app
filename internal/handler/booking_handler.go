@@ -41,7 +41,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "booking created successfully", booking)
+	response.Success(c, http.StatusCreated, "booking created successfully", booking)
 }
 
 func (h *BookingHandler) GetBooks(c *gin.Context) {
@@ -75,7 +75,8 @@ func (h *BookingHandler) DeleteBooking(c *gin.Context) {
 
 	if err := h.service.Delete(userID, uint(bookingID)); err != nil {
 		response.FromError(c, err)
+		return
 	}
 
-	response.Success(c, http.StatusNoContent, "data deleted successfully", nil)
+	response.Success(c, http.StatusOK, "data deleted successfully", nil)
 }

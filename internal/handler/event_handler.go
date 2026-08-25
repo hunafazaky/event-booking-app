@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hunafazaky/event-booking-app/internal/response"
@@ -24,10 +26,26 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 		return
 	}
 
-	var input service.CreateEventInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, "image file is required")
 		return
+	}
+	defer file.Close()
+
+	dateTime, err := time.Parse(time.RFC3339, c.PostForm("datetime"))
+	if err != nil {
+		response.Fail(c, http.StatusBadRequest, "invalid datetime format")
+		return
+	}
+
+	input := service.CreateEventInput{
+		Name:        c.PostForm("name"),
+		Description: c.PostForm("description"),
+		Location:    c.PostForm("location"),
+		DateTime:    dateTime,
+		Image:       file,
+		ImageName:   header.Filename,
 	}
 
 	event, err := h.service.Create(userID, input)
@@ -36,16 +54,12 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "event created successfully", event)
+	response.Success(c, http.StatusCreated, "event created successfully", event)
 }
 
 func (h *EventHandler) GetEvents(c *gin.Context) {
-	page, err := strconv.Atoi(c.Query("page"))
-	limit, err := strconv.Atoi(c.Query("limit"))
-	if err != nil {
-		response.Fail(c, http.StatusBadRequest, "invalid query parameter value")
-		return
-	}
+	page, _ := strconv.Atoi(c.Query("page"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
 
 	events, meta, err := h.service.List(c.Query("search"), page, limit)
 	if err != nil {
@@ -79,13 +93,13 @@ func (h *EventHandler) GetEventByUser(c *gin.Context) {
 		return
 	}
 
-	event, err := h.service.GetByID(userID)
+	events, err := h.service.GetByUser(userID)
 	if err != nil {
 		response.FromError(c, err)
 		return
 	}
 
-	response.Success(c, http.StatusOK, "data event retrieved", event)
+	response.Success(c, http.StatusOK, "data event retrieved", events)
 }
 
 func (h *EventHandler) UpdateEvent(c *gin.Context) {
@@ -101,11 +115,37 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	var input service.UpdateEventInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Fail(c, http.StatusBadRequest, err.Error())
+	var (
+		input service.UpdateEventInput
+	)
+
+	file, header, err := c.Request.FormFile("image")
+	switch {
+	case err == nil:
+		defer file.Close()
+		input.Image = file
+		input.ImageName = header.Filename
+	case errors.Is(err, http.ErrMissingFile):
+		// no image sent — that's fine, Image/ImageName just stay zero-valued,
+		// and EventService.Update's `if input.Image != nil` check skips
+		// the upload entirely.
+	default:
+		response.Fail(c, http.StatusBadRequest, "failed to process image file")
 		return
 	}
+
+	if c.PostForm("datetime") != "" {
+		dateTime, err := time.Parse(time.RFC3339, c.PostForm("datetime"))
+		if err != nil {
+			response.Fail(c, http.StatusBadRequest, "invalid datetime format")
+			return
+		}
+		input.DateTime = &dateTime
+	}
+
+	input.Name = c.PostForm("name")
+	input.Description = c.PostForm("description")
+	input.Location = c.PostForm("location")
 
 	event, err := h.service.Update(userID, uint(eventID), input)
 	if err != nil {
@@ -134,5 +174,5 @@ func (h *EventHandler) DeleteEvent(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusNoContent, "data deleted successfully", nil)
+	response.Success(c, http.StatusOK, "data deleted successfully", nil)
 }

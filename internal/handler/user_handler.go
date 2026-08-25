@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hunafazaky/event-booking-app/internal/model"
 	"github.com/hunafazaky/event-booking-app/internal/response"
 	"github.com/hunafazaky/event-booking-app/internal/service"
 )
@@ -18,7 +17,7 @@ func NewUserHandler(service service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) SignUp(c *gin.Context) {
-	var input model.InputSignUp
+	var input service.SignUpInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, err.Error())
 		return
@@ -34,7 +33,7 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 }
 
 func (h *UserHandler) SignIn(c *gin.Context) {
-	var input model.InputSignIn
+	var input service.SignInInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		response.Fail(c, http.StatusBadRequest, err.Error())
 		return

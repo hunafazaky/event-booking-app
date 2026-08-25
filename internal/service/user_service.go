@@ -13,9 +13,20 @@ import (
 	"gorm.io/gorm"
 )
 
+type SignUpInput struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type SignInInput struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 type UserService interface {
-	SignUp(input model.InputSignUp) (*dto.UserResponse, error)
-	SignIn(input model.InputSignIn) (*dto.SignInResponse, error)
+	SignUp(input SignUpInput) (*dto.UserResponse, error)
+	SignIn(input SignInInput) (*dto.SignInResponse, error)
 	GetAuthUser(userID uint) (*dto.UserResponse, error)
 }
 
@@ -28,7 +39,7 @@ func NewUserService(repo repository.UserRepository, jwtSecret string) UserServic
 	return &userService{repo: repo, jwtSecret: jwtSecret}
 }
 
-func (s *userService) SignUp(input model.InputSignUp) (*dto.UserResponse, error) {
+func (s *userService) SignUp(input SignUpInput) (*dto.UserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, apperror.Internal("Failed to Hash Password", err)
@@ -55,7 +66,7 @@ func (s *userService) SignUp(input model.InputSignUp) (*dto.UserResponse, error)
 	return &response, nil
 }
 
-func (s *userService) SignIn(input model.InputSignIn) (*dto.SignInResponse, error) {
+func (s *userService) SignIn(input SignInInput) (*dto.SignInResponse, error) {
 	user, err := s.repo.FindByEmail(input.Email)
 	if err != nil {
 		return nil, apperror.Unauthorized("Invalid Email or Password")
