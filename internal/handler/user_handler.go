@@ -2,130 +2,65 @@ package handler
 
 import (
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/hunafazaky/event-booking-app/internal/config"
 	"github.com/hunafazaky/event-booking-app/internal/model"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/hunafazaky/event-booking-app/internal/response"
+	"github.com/hunafazaky/event-booking-app/internal/service"
 )
 
-func SignUpUser(c *gin.Context) {
+type UserHandler struct {
+	service service.UserService
+}
+
+func NewUserHandler(service service.UserService) *UserHandler {
+	return &UserHandler{service: service}
+}
+
+func (h *UserHandler) SignUp(c *gin.Context) {
 	var input model.InputSignUp
-
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		response.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	user, err := h.service.SignUp(input)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		response.FromError(c, err)
 		return
 	}
 
-	user := model.User{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: string(hashedPassword),
-	}
-
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "User created successfully",
-		"data": gin.H{
-			"id":     user.ID,
-			"name":   user.Name,
-			"email":  user.Email,
-			"events": user.Events,
-		},
-	})
+	response.Success(c, http.StatusCreated, "user created successfully", user)
 }
 
-func SignInUser(c *gin.Context) {
+func (h *UserHandler) SignIn(c *gin.Context) {
 	var input model.InputSignIn
-
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		response.Fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	var user model.User
-	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password",
-		})
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password",
-		})
-		return
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
-	})
-
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	user, err := h.service.SignIn(input)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		response.FromError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User signed in successfully",
-		"token":   tokenString,
-		"data": gin.H{
-			"id":     user.ID,
-			"name":   user.Name,
-			"email":  user.Email,
-			"events": user.Events,
-		},
-	})
+	response.Success(c, http.StatusOK, "user signed successfully", user)
 }
 
-func GetAuthUser(c *gin.Context) {
-	userID, exist := c.Get("user_id")
-	if !exist {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authenticated",
-		})
+func (h *UserHandler) GetMe(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		response.FromError(c, err)
 		return
 	}
 
-	var user model.User
-
-	if err := config.DB.Select("id", "name", "email").First(&user, userID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User not found",
-		})
+	user, err := h.service.GetAuthUser(userID)
+	if err != nil {
+		response.FromError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"id":     user.ID,
-		"name":   user.Name,
-		"email":  user.Email,
-		"events": user.Events,
-	})
+	response.Success(c, http.StatusOK, "data user retrieved", user)
 }
