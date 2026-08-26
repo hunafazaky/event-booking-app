@@ -11,7 +11,7 @@ type EventResponse struct {
 	Description string       `json:"description"`
 	Location    string       `json:"location"`
 	Image       string       `json:"image"`
-	DateTime    time.Time    `json:"date_time"`
+	DateTime    time.Time    `json:"datetime"`
 	User        UserResponse `json:"user"`
 	CreatedAt   time.Time    `json:"created_at"`
 }

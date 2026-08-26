@@ -17,16 +17,16 @@ func NewUserHandler(service service.UserService) *UserHandler {
 }
 
 // SignUp godoc
-// @Summary      Register a new user
-// @Description  Creates a new user account.
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        input  body      service.SignUpInput  true  "Sign up payload"
-// @Success      201    {object}  response.Envelope{data=dto.UserResponse}
-// @Failure      400    {object}  response.Envelope
-// @Failure      409    {object}  response.Envelope
-// @Router       /auth/signup [post]
+// @Summary Create a user account
+// @Description Creates a new user account.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body service.SignUpInput true "Sign up payload"
+// @Success 201 {object} response.Envelope{data=dto.UserResponse}
+// @Failure 400 {object} response.Envelope
+// @Failure 409 {object} response.Envelope
+// @Router /auth/signup [post]
 func (h *UserHandler) SignUp(c *gin.Context) {
 	var input service.SignUpInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -43,6 +43,17 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "user created successfully", user)
 }
 
+// SignIn godoc
+// @Summary Sign in a user
+// @Description Authenticates a user and returns a JWT with the user's profile.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body service.SignInInput true "Sign in payload"
+// @Success 200 {object} response.Envelope{data=dto.SignInResponse}
+// @Failure 400 {object} response.Envelope
+// @Failure 401 {object} response.Envelope
+// @Router /auth/signin [post]
 func (h *UserHandler) SignIn(c *gin.Context) {
 	var input service.SignInInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -59,6 +70,16 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 	response.Success(c, http.StatusOK, "user signed successfully", user)
 }
 
+// GetMe godoc
+// @Summary Get the authenticated user
+// @Description Returns the profile of the authenticated user.
+// @Security BearerAuth
+// @Tags auth
+// @Produce json
+// @Success 200 {object} response.Envelope{data=dto.UserResponse}
+// @Failure 401 {object} response.Envelope
+// @Failure 404 {object} response.Envelope
+// @Router /auth/me [get]
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {

@@ -1,5 +1,16 @@
 basePath: /api
 definitions:
+  dto.BookingResponse:
+    properties:
+      booking_code:
+        type: string
+      event:
+        $ref: '#/definitions/dto.EventResponse'
+      id:
+        type: integer
+      phone:
+        type: string
+    type: object
   dto.BookingSummaryResponse:
     properties:
       booking_code:
@@ -19,7 +30,7 @@ definitions:
         type: array
       created_at:
         type: string
-      date_time:
+      datetime:
         type: string
       description:
         type: string
@@ -49,7 +60,7 @@ definitions:
     properties:
       created_at:
         type: string
-      date_time:
+      datetime:
         type: string
       description:
         type: string
@@ -60,6 +71,13 @@ definitions:
       location:
         type: string
       name:
+        type: string
+      user:
+        $ref: '#/definitions/dto.UserResponse'
+    type: object
+  dto.SignInResponse:
+    properties:
+      token:
         type: string
       user:
         $ref: '#/definitions/dto.UserResponse'
@@ -84,6 +102,23 @@ definitions:
       success:
         type: boolean
     type: object
+  service.CreateBookingInput:
+    properties:
+      event_id:
+        type: integer
+      phone:
+        type: string
+    type: object
+  service.SignInInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   service.SignUpInput:
     properties:
       email:
@@ -105,6 +140,69 @@ info:
   title: Event Booking API
   version: "1.0"
 paths:
+  /auth/me:
+    get:
+      description: Returns the profile of the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
+      tags:
+      - auth
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT with the user's profile.
+      parameters:
+      - description: Sign in payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.SignInResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      summary: Sign in a user
+      tags:
+      - auth
   /auth/signup:
     post:
       consumes:
@@ -137,9 +235,112 @@ paths:
           description: Conflict
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Register a new user
+      summary: Create a user account
       tags:
       - auth
+  /bookings:
+    get:
+      description: Returns all bookings belonging to the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.BookingResponse'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List the user's bookings
+      tags:
+      - bookings
+    post:
+      consumes:
+      - application/json
+      description: Creates a booking for an event for the authenticated user.
+      parameters:
+      - description: Booking payload
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateBookingInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BookingResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Create a booking
+      tags:
+      - bookings
+  /bookings/{id}:
+    delete:
+      description: Deletes a booking owned by the authenticated user.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete a booking
+      tags:
+      - bookings
   /events:
     get:
       description: Returns a paginated list of events, optionally filtered by search
@@ -149,11 +350,11 @@ paths:
         in: query
         name: search
         type: string
-      - description: Page number
+      - description: Page number (default 1)
         in: query
         name: page
         type: integer
-      - description: Results per page
+      - description: Results per page (default 6)
         in: query
         name: limit
         type: integer
@@ -173,13 +374,17 @@ paths:
                 meta:
                   $ref: '#/definitions/dto.EventListMeta'
               type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Envelope'
       summary: List events
       tags:
       - events
     post:
       consumes:
       - multipart/form-data
-      description: Returns the posted event.
+      description: Creates a new event for the authenticated user.
       parameters:
       - description: Event name
         in: formData
@@ -196,9 +401,9 @@ paths:
         name: location
         required: true
         type: string
-      - description: RFC3339 date_time
+      - description: RFC3339 datetime
         in: formData
-        name: date_time
+        name: datetime
         required: true
         type: string
       - description: Event image
@@ -222,14 +427,22 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Create new event
+      summary: Create an event
       tags:
       - events
   /events/{id}:
     delete:
-      description: Returns a success message.
+      description: Deletes an event owned by the authenticated user.
       parameters:
       - description: Event ID
         in: path
@@ -243,6 +456,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
         "403":
           description: Forbidden
           schema:
@@ -253,11 +470,11 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Delete event
+      summary: Delete an event
       tags:
       - events
     get:
-      description: Returns an event based on id parameter.
+      description: Returns an event by ID, including its bookings.
       parameters:
       - description: Event ID
         in: path
@@ -280,14 +497,19 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Get event
+      summary: Get an event
       tags:
       - events
     put:
       consumes:
       - multipart/form-data
-      description: Returns the updated event.
+      description: Updates an event owned by the authenticated user.
       parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
       - description: Event name
         in: formData
         name: name
@@ -300,19 +522,14 @@ paths:
         in: formData
         name: location
         type: string
-      - description: RFC3339 date_time
+      - description: RFC3339 datetime
         in: formData
-        name: date_time
+        name: datetime
         type: string
       - description: Event image
         in: formData
         name: image
         type: file
-      - description: Event ID
-        in: path
-        name: id
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
@@ -329,6 +546,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
         "403":
           description: Forbidden
           schema:
@@ -337,14 +558,18 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.Envelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Update event
+      summary: Update an event
       tags:
       - events
   /events/mine:
     get:
-      description: Returns a paginated list of events created by authorized user.
+      description: Returns events created by the authenticated user.
       produces:
       - application/json
       responses:
@@ -359,9 +584,13 @@ paths:
                     $ref: '#/definitions/dto.EventResponse'
                   type: array
               type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: List events
+      summary: List the user's events
       tags:
       - events
 securityDefinitions:

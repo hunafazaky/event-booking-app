@@ -22,6 +22,20 @@ func NewBookingHandler(service service.BookingService) *BookingHandler {
 	return &BookingHandler{service: service}
 }
 
+// CreateBooking godoc
+// @Summary Create a booking
+// @Description Creates a booking for an event for the authenticated user.
+// @Security BearerAuth
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Param input body service.CreateBookingInput true "Booking payload"
+// @Success 201 {object} response.Envelope{data=dto.BookingResponse}
+// @Failure 400 {object} response.Envelope
+// @Failure 401 {object} response.Envelope
+// @Failure 404 {object} response.Envelope
+// @Failure 409 {object} response.Envelope
+// @Router /bookings [post]
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -44,6 +58,15 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "booking created successfully", booking)
 }
 
+// GetBooks godoc
+// @Summary List the user's bookings
+// @Description Returns all bookings belonging to the authenticated user.
+// @Security BearerAuth
+// @Tags bookings
+// @Produce json
+// @Success 200 {object} response.Envelope{data=[]dto.BookingResponse}
+// @Failure 401 {object} response.Envelope
+// @Router /bookings [get]
 func (h *BookingHandler) GetBooks(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
@@ -60,6 +83,18 @@ func (h *BookingHandler) GetBooks(c *gin.Context) {
 	response.Success(c, http.StatusOK, "booking retrieved successfully", bookings)
 }
 
+// DeleteBooking godoc
+// @Summary Delete a booking
+// @Description Deletes a booking owned by the authenticated user.
+// @Security BearerAuth
+// @Tags bookings
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Success 200 {object} response.Envelope
+// @Failure 401 {object} response.Envelope
+// @Failure 403 {object} response.Envelope
+// @Failure 404 {object} response.Envelope
+// @Router /bookings/{id} [delete]
 func (h *BookingHandler) DeleteBooking(c *gin.Context) {
 	userID, err := getUserID(c)
 	if err != nil {
