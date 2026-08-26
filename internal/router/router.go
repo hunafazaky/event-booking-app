@@ -20,27 +20,27 @@ func Setup(
 	bookingHandler *handler.BookingHandler,
 ) {
 	{
-		api := server.Group("/api/events")
-		api.GET("/", eventHandler.GetEvents)
-		api.GET("/:id", eventHandler.GetEventByID)
-	}
-
-	{
 		api := server.Group("/api/auth")
 		api.POST("/signup", userHandler.SignUp)
 		api.POST("/signin", userHandler.SignIn)
 	}
 
 	{
-		protectedApi := server.Group("/api")
-		protectedApi.Use(middleware.RequireAuth(cfg.JWTSecret))
-		protectedApi.GET("/auth/me", userHandler.GetMe)
-		protectedApi.POST("/events", eventHandler.CreateEvent)
-		protectedApi.PUT("/events/:id", eventHandler.UpdateEvent)
-		protectedApi.DELETE("/events/:id", eventHandler.DeleteEvent)
-		protectedApi.GET("/events/mine", eventHandler.GetEventsMine)
-		protectedApi.POST("/bookings", bookingHandler.CreateBooking)
-		protectedApi.GET("/bookings", bookingHandler.GetBooks)
-		protectedApi.DELETE("/bookings/:id", bookingHandler.DeleteBooking)
+		api := server.Group("/api")
+		api.GET("/events", eventHandler.GetEvents)
+		api.GET("/events/:id", eventHandler.GetEventByID)
+	}
+
+	{
+		api := server.Group("/api")
+		api.Use(middleware.RequireAuth(cfg.JWTSecret))
+		api.GET("/auth/me", userHandler.GetMe)
+		api.POST("/events", eventHandler.CreateEvent)
+		api.PUT("/events/:id", eventHandler.UpdateEvent)
+		api.DELETE("/events/:id", eventHandler.DeleteEvent)
+		api.GET("/events/mine", eventHandler.GetEventsMine)
+		api.POST("/bookings", bookingHandler.CreateBooking)
+		api.GET("/bookings", bookingHandler.GetBooks)
+		api.DELETE("/bookings/:id", bookingHandler.DeleteBooking)
 	}
 }
