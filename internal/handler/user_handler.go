@@ -17,9 +17,9 @@ func NewUserHandler(service service.UserService) *UserHandler {
 }
 
 // SignUp godoc
-// @Summary Create a user account
+// @Summary Sign Up
 // @Description Creates a new user account.
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param input body service.SignUpInput true "Sign up payload"
@@ -44,9 +44,9 @@ func (h *UserHandler) SignUp(c *gin.Context) {
 }
 
 // SignIn godoc
-// @Summary Sign in a user
+// @Summary Sign In
 // @Description Authenticates a user and returns a JWT with the user's profile.
-// @Tags auth
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param input body service.SignInInput true "Sign in payload"
@@ -71,10 +71,10 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 }
 
 // GetMe godoc
-// @Summary Get the authenticated user
+// @Summary Get Current User Data
 // @Description Returns the profile of the authenticated user.
 // @Security BearerAuth
-// @Tags auth
+// @Tags Auth
 // @Produce json
 // @Success 200 {object} response.Envelope{data=dto.UserResponse}
 // @Failure 401 {object} response.Envelope

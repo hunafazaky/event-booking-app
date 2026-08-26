@@ -11,10 +11,11 @@ import (
 	"github.com/hunafazaky/event-booking-app/internal/service"
 	"github.com/joho/godotenv"
 
-	// documentation
-	_ "github.com/hunafazaky/event-booking-app/docs"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	// Named (not blank) import now — main.go reads docs.SwaggerInfo
+	// directly below to override Host once deployed. The generated
+	// docs.go's init() side-effect (registering the spec) still runs the
+	// same way on import either way.
+	"github.com/hunafazaky/event-booking-app/docs"
 )
 
 // @title           Event Booking API
@@ -41,6 +42,16 @@ func main() {
 		log.Fatal("Invalid configuration: ", err)
 	}
 
+	// The @host annotation above is what generates the spec's DEFAULT
+	// host — correct for local dev (localhost:8080), wrong once deployed.
+	// Overriding it here, once at startup, means both doc UIs (Swagger UI
+	// and Scalar, wired in router.go) automatically point "try it out"
+	// requests at the real deployed domain instead of localhost.
+	if cfg.PublicHost != "" {
+		docs.SwaggerInfo.Host = cfg.PublicHost
+		docs.SwaggerInfo.Schemes = []string{"https"}
+	}
+
 	db := config.ConnectDB(cfg)
 
 	// Repositories
@@ -63,7 +74,6 @@ func main() {
 	server.SetTrustedProxies([]string{"localhost"})
 
 	router.Setup(server, cfg, userHandler, eventHandler, bookingHandler)
-	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.Run(":" + cfg.Port)
 }

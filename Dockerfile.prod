@@ -1,0 +1,30 @@
+# Production build — used by Render, NOT by docker-compose (which uses
+# the dev Dockerfile with air/hot-reload). This compiles a single static
+# binary and ships it in a minimal image: no source, no dev tooling,
+# no bind mounts — everything Render needs is baked into the image at
+# build time, since Render runs the built image standalone.
+
+# --- Stage 1: Build ---
+FROM golang:1.26.5 AS builder
+WORKDIR /app
+
+COPY go.mod go.sum* ./
+RUN go mod download
+
+COPY . .
+# CGO_ENABLED=0 → fully static binary, no glibc dependency, so it runs
+# fine on the minimal Alpine base below without any extra runtime libs.
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server ./cmd/server
+
+# --- Stage 2: Runtime ---
+FROM alpine:3.20
+
+# ca-certificates is required for outbound TLS — this app calls Neon
+# (Postgres over TLS) and the ImageKit API, both HTTPS.
+RUN apk add --no-cache ca-certificates
+
+WORKDIR /app
+COPY --from=builder /app/server .
+
+EXPOSE 8080
+CMD ["./server"]

@@ -22,6 +22,14 @@ type Config struct {
 
 	JWTSecret          string
 	ImageKitPrivateKey string
+
+	// PublicHost is the externally-reachable host:port for this deployment
+	// (e.g. "your-app.onrender.com"). Optional — empty locally, where the
+	// spec's default @host (localhost:8080) from the swag annotation
+	// already suffices. When set, main.go uses it to override
+	// docs.SwaggerInfo.Host so "try it out" in Swagger UI / Scalar hits
+	// the right domain instead of localhost.
+	PublicHost string
 }
 
 // Load reads environment variables into a Config and validates that
@@ -41,6 +49,8 @@ func Load() (*Config, error) {
 
 		JWTSecret:          os.Getenv("JWT_SECRET"),
 		ImageKitPrivateKey: os.Getenv("IMAGEKIT_PRIVATE_KEY"),
+
+		PublicHost: os.Getenv("PUBLIC_HOST"),
 	}
 
 	if cfg.DBURI == "" {

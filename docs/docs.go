@@ -27,9 +27,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Get the authenticated user",
+                "summary": "Get Current User Data",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -74,9 +74,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Sign in a user",
+                "summary": "Sign In",
                 "parameters": [
                     {
                         "description": "Sign in payload",
@@ -132,9 +132,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Auth"
                 ],
-                "summary": "Create a user account",
+                "summary": "Sign Up",
                 "parameters": [
                     {
                         "description": "Sign up payload",
@@ -192,9 +192,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bookings"
+                    "Bookings"
                 ],
-                "summary": "List the user's bookings",
+                "summary": "Get Current User Bookings",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -239,9 +239,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bookings"
+                    "Bookings"
                 ],
-                "summary": "Create a booking",
+                "summary": "Create New Booking",
                 "parameters": [
                     {
                         "description": "Booking payload",
@@ -311,9 +311,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bookings"
+                    "Bookings"
                 ],
-                "summary": "Delete a booking",
+                "summary": "Delete a Booking",
                 "parameters": [
                     {
                         "type": "integer",
@@ -358,9 +358,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "List events",
+                "summary": "Get All Events",
                 "parameters": [
                     {
                         "type": "string",
@@ -428,9 +428,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "Create an event",
+                "summary": "Create New Event",
                 "parameters": [
                     {
                         "type": "string",
@@ -520,9 +520,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "List the user's events",
+                "summary": "Get Current User Events",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -561,9 +561,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "Get an event",
+                "summary": "Get an Event by ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -614,9 +614,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "Update an event",
+                "summary": "Update an Event",
                 "parameters": [
                     {
                         "type": "integer",
@@ -718,9 +718,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "Events"
                 ],
-                "summary": "Delete an event",
+                "summary": "Delete an Event",
                 "parameters": [
                     {
                         "type": "integer",

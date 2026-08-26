@@ -165,9 +165,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Get the authenticated user
+      summary: Get Current User Data
       tags:
-      - auth
+      - Auth
   /auth/signin:
     post:
       consumes:
@@ -200,9 +200,9 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Sign in a user
+      summary: Sign In
       tags:
-      - auth
+      - Auth
   /auth/signup:
     post:
       consumes:
@@ -235,9 +235,9 @@ paths:
           description: Conflict
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Create a user account
+      summary: Sign Up
       tags:
-      - auth
+      - Auth
   /bookings:
     get:
       description: Returns all bookings belonging to the authenticated user.
@@ -261,9 +261,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: List the user's bookings
+      summary: Get Current User Bookings
       tags:
-      - bookings
+      - Bookings
     post:
       consumes:
       - application/json
@@ -305,9 +305,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Create a booking
+      summary: Create New Booking
       tags:
-      - bookings
+      - Bookings
   /bookings/{id}:
     delete:
       description: Deletes a booking owned by the authenticated user.
@@ -338,9 +338,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Delete a booking
+      summary: Delete a Booking
       tags:
-      - bookings
+      - Bookings
   /events:
     get:
       description: Returns a paginated list of events, optionally filtered by search
@@ -378,9 +378,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: List events
+      summary: Get All Events
       tags:
-      - events
+      - Events
     post:
       consumes:
       - multipart/form-data
@@ -437,9 +437,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Create an event
+      summary: Create New Event
       tags:
-      - events
+      - Events
   /events/{id}:
     delete:
       description: Deletes an event owned by the authenticated user.
@@ -470,9 +470,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Delete an event
+      summary: Delete an Event
       tags:
-      - events
+      - Events
     get:
       description: Returns an event by ID, including its bookings.
       parameters:
@@ -497,9 +497,9 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Get an event
+      summary: Get an Event by ID
       tags:
-      - events
+      - Events
     put:
       consumes:
       - multipart/form-data
@@ -564,9 +564,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Update an event
+      summary: Update an Event
       tags:
-      - events
+      - Events
   /events/mine:
     get:
       description: Returns events created by the authenticated user.
@@ -590,9 +590,9 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: List the user's events
+      summary: Get Current User Events
       tags:
-      - events
+      - Events
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and your JWT.

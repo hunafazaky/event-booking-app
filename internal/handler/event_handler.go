@@ -20,10 +20,10 @@ func NewEventHandler(service service.EventService) *EventHandler {
 }
 
 // CreateEvent godoc
-// @Summary Create an event
+// @Summary Create New Event
 // @Description Creates a new event for the authenticated user.
 // @Security BearerAuth
-// @Tags events
+// @Tags Events
 // @Accept mpfd
 // @Produce json
 // @Param name formData string true "Event name"
@@ -75,9 +75,9 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 }
 
 // GetEvents godoc
-// @Summary List events
+// @Summary Get All Events
 // @Description Returns a paginated list of events, optionally filtered by search term.
-// @Tags events
+// @Tags Events
 // @Produce json
 // @Param search query string false "Search by name or description"
 // @Param page query int false "Page number (default 1)"
@@ -99,9 +99,9 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 }
 
 // GetEventByID godoc
-// @Summary Get an event
+// @Summary Get an Event by ID
 // @Description Returns an event by ID, including its bookings.
-// @Tags events
+// @Tags Events
 // @Produce json
 // @Param id path int true "Event ID"
 // @Success 200 {object} response.Envelope{data=dto.EventDetailResponse}
@@ -124,10 +124,10 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 }
 
 // GetEventsMine godoc
-// @Summary List the user's events
+// @Summary Get Current User Events
 // @Description Returns events created by the authenticated user.
 // @Security BearerAuth
-// @Tags events
+// @Tags Events
 // @Produce json
 // @Success 200 {object} response.Envelope{data=[]dto.EventResponse}
 // @Failure 401 {object} response.Envelope
@@ -149,10 +149,10 @@ func (h *EventHandler) GetEventsMine(c *gin.Context) {
 }
 
 // UpdateEvent godoc
-// @Summary Update an event
+// @Summary Update an Event
 // @Description Updates an event owned by the authenticated user.
 // @Security BearerAuth
-// @Tags events
+// @Tags Events
 // @Accept mpfd
 // @Produce json
 // @Param id path int true "Event ID"
@@ -223,10 +223,10 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 }
 
 // DeleteEvent godoc
-// @Summary Delete an event
+// @Summary Delete an Event
 // @Description Deletes an event owned by the authenticated user.
 // @Security BearerAuth
-// @Tags events
+// @Tags Events
 // @Produce json
 // @Param id path int true "Event ID"
 // @Success 200 {object} response.Envelope
