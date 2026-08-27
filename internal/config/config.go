@@ -50,7 +50,12 @@ func Load() (*Config, error) {
 		JWTSecret:          os.Getenv("JWT_SECRET"),
 		ImageKitPrivateKey: os.Getenv("IMAGEKIT_PRIVATE_KEY"),
 
-		PublicHost: os.Getenv("PUBLIC_HOST"),
+		// PUBLIC_HOST is the explicit override. If not set, fall back to
+		// RENDER_EXTERNAL_HOSTNAME, which Render auto-populates for every
+		// web service — meaning on Render, this needs NO manual setup at
+		// all. PUBLIC_HOST still exists for non-Render deployments, or if
+		// you later attach a custom domain and want to override it.
+		PublicHost: firstNonEmpty(os.Getenv("PUBLIC_HOST"), os.Getenv("RENDER_EXTERNAL_HOSTNAME")),
 	}
 
 	if cfg.DBURI == "" {
@@ -100,4 +105,14 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// firstNonEmpty returns the first non-empty string, or "" if all are empty.
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }

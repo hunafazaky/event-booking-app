@@ -21,6 +21,17 @@ import (
 // @title           Event Booking API
 // @version         1.0
 // @description     API for browsing events and managing bookings.
+// @description
+// @description     **Authentication:** call `POST /auth/signin` (or
+// @description     `/auth/signup` first, if you don't have an account) to
+// @description     get a token. Then click "Authorize" (top right) and
+// @description     enter it as `Bearer <your-token>`. Endpoints marked
+// @description     with a padlock require this.
+// @description
+// @description     **Errors:** every response uses the same envelope —
+// @description     `{ success, message, data, meta, error }`. On failure,
+// @description     `error` holds a human-readable message and `data`/`meta`
+// @description     are omitted.
 // @host            localhost:8080
 // @BasePath        /api
 

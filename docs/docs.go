@@ -194,7 +194,7 @@ const docTemplate = `{
                 "tags": [
                     "Bookings"
                 ],
-                "summary": "Get Current User Bookings",
+                "summary": "List the user's bookings",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -241,7 +241,7 @@ const docTemplate = `{
                 "tags": [
                     "Bookings"
                 ],
-                "summary": "Create New Booking",
+                "summary": "Create a booking",
                 "parameters": [
                     {
                         "description": "Booking payload",
@@ -313,10 +313,11 @@ const docTemplate = `{
                 "tags": [
                     "Bookings"
                 ],
-                "summary": "Delete a Booking",
+                "summary": "Delete a booking",
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Booking ID",
                         "name": "id",
                         "in": "path",
@@ -360,22 +361,25 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get All Events",
+                "summary": "List events",
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "conference",
                         "description": "Search by name or description",
                         "name": "search",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Page number (default 1)",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "example": 6,
                         "description": "Results per page (default 6)",
                         "name": "limit",
                         "in": "query"
@@ -430,10 +434,11 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Create New Event",
+                "summary": "Create an event",
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "Tech Conference 2026",
                         "description": "Event name",
                         "name": "name",
                         "in": "formData",
@@ -441,6 +446,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "A conference about the latest in tech",
                         "description": "Event description",
                         "name": "description",
                         "in": "formData",
@@ -448,6 +454,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "Jakarta, Indonesia",
                         "description": "Event location",
                         "name": "location",
                         "in": "formData",
@@ -455,6 +462,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "2026-12-01T09:00:00Z",
                         "description": "RFC3339 datetime",
                         "name": "datetime",
                         "in": "formData",
@@ -522,7 +530,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get Current User Events",
+                "summary": "List the user's events",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -563,10 +571,11 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Get an Event by ID",
+                "summary": "Get an event",
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Event ID",
                         "name": "id",
                         "in": "path",
@@ -616,10 +625,11 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Update an Event",
+                "summary": "Update an event",
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Event ID",
                         "name": "id",
                         "in": "path",
@@ -627,24 +637,28 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "example": "Tech Conference 2026 - Updated",
                         "description": "Event name",
                         "name": "name",
                         "in": "formData"
                     },
                     {
                         "type": "string",
+                        "example": "A conference about the latest in tech",
                         "description": "Event description",
                         "name": "description",
                         "in": "formData"
                     },
                     {
                         "type": "string",
+                        "example": "Jakarta, Indonesia",
                         "description": "Event location",
                         "name": "location",
                         "in": "formData"
                     },
                     {
                         "type": "string",
+                        "example": "2026-12-01T09:00:00Z",
                         "description": "RFC3339 datetime",
                         "name": "datetime",
                         "in": "formData"
@@ -720,10 +734,11 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "Delete an Event",
+                "summary": "Delete an event",
                 "parameters": [
                     {
                         "type": "integer",
+                        "example": 1,
                         "description": "Event ID",
                         "name": "id",
                         "in": "path",
@@ -920,10 +935,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "event_id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+6281234567890"
                 }
             }
         },
@@ -935,10 +952,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "jane@example.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "secret123"
                 }
             }
         },
@@ -951,14 +970,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "jane@example.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Jane Doe"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 6
+                    "minLength": 6,
+                    "example": "secret123"
                 }
             }
         }
@@ -980,7 +1002,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Event Booking API",
-	Description:      "API for browsing events and managing bookings.",
+	Description:      "API for browsing events and managing bookings.\n\n**Authentication:** call `POST /auth/signin` (or\n`/auth/signup` first, if you don't have an account) to\nget a token. Then click \"Authorize\" (top right) and\nenter it as `Bearer <your-token>`. Endpoints marked\nwith a padlock require this.\n\n**Errors:** every response uses the same envelope —\n`{ success, message, data, meta, error }`. On failure,\n`error` holds a human-readable message and `data`/`meta`\nare omitted.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

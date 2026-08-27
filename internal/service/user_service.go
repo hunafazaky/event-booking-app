@@ -14,14 +14,14 @@ import (
 )
 
 type SignUpInput struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Name     string `json:"name" binding:"required" example:"Jane Doe"`
+	Email    string `json:"email" binding:"required,email" example:"jane@example.com"`
+	Password string `json:"password" binding:"required,min=6" example:"secret123"`
 }
 
 type SignInInput struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required" example:"jane@example.com"`
+	Password string `json:"password" binding:"required" example:"secret123"`
 }
 
 type UserService interface {

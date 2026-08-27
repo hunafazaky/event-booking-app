@@ -18,6 +18,12 @@ import (
 // component via CDN. It only needs a URL to fetch the OpenAPI spec from —
 // /openapi.json below, which is the same generated spec Swagger UI reads,
 // just served as raw JSON instead of wrapped in a UI.
+//
+// data-configuration is Scalar's own settings object — theme:"default" and
+// layout:"classic" together give the plainest, least "app-like" look
+// Scalar offers: a single scrolling document instead of a three-pane
+// dashboard. This block is intentionally generic — copy it as-is into any
+// other project's docs page for the same clean baseline.
 const scalarReferenceHTML = `<!doctype html>
 <html>
 <head>
@@ -26,7 +32,11 @@ const scalarReferenceHTML = `<!doctype html>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-	<script id="api-reference" data-url="/openapi.json"></script>
+	<script
+		id="api-reference"
+		data-url="/openapi.json"
+		data-configuration='{"theme":"elysiajs","darkMode":true}'
+	></script>
 	<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 </body>
 </html>`
@@ -43,28 +53,28 @@ func Setup(
 	bookingHandler *handler.BookingHandler,
 ) {
 	{
+		api := server.Group("/api/events")
+		api.GET("", eventHandler.GetEvents)
+		api.GET("/:id", eventHandler.GetEventByID)
+	}
+
+	{
 		api := server.Group("/api/auth")
 		api.POST("/signup", userHandler.SignUp)
 		api.POST("/signin", userHandler.SignIn)
 	}
 
 	{
-		api := server.Group("/api")
-		api.GET("/events", eventHandler.GetEvents)
-		api.GET("/events/:id", eventHandler.GetEventByID)
-	}
-
-	{
-		api := server.Group("/api")
-		api.Use(middleware.RequireAuth(cfg.JWTSecret))
-		api.GET("/auth/me", userHandler.GetMe)
-		api.POST("/events", eventHandler.CreateEvent)
-		api.PUT("/events/:id", eventHandler.UpdateEvent)
-		api.DELETE("/events/:id", eventHandler.DeleteEvent)
-		api.GET("/events/mine", eventHandler.GetEventsMine)
-		api.POST("/bookings", bookingHandler.CreateBooking)
-		api.GET("/bookings", bookingHandler.GetBooks)
-		api.DELETE("/bookings/:id", bookingHandler.DeleteBooking)
+		protectedApi := server.Group("/api")
+		protectedApi.Use(middleware.RequireAuth(cfg.JWTSecret))
+		protectedApi.GET("/auth/me", userHandler.GetMe)
+		protectedApi.POST("/events", eventHandler.CreateEvent)
+		protectedApi.PUT("/events/:id", eventHandler.UpdateEvent)
+		protectedApi.DELETE("/events/:id", eventHandler.DeleteEvent)
+		protectedApi.GET("/events/mine", eventHandler.GetEventsMine)
+		protectedApi.POST("/bookings", bookingHandler.CreateBooking)
+		protectedApi.GET("/bookings", bookingHandler.GetBooks)
+		protectedApi.DELETE("/bookings/:id", bookingHandler.DeleteBooking)
 	}
 
 	// --- API documentation ---

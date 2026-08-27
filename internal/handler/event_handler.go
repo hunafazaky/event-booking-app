@@ -20,16 +20,16 @@ func NewEventHandler(service service.EventService) *EventHandler {
 }
 
 // CreateEvent godoc
-// @Summary Create New Event
+// @Summary Create an event
 // @Description Creates a new event for the authenticated user.
 // @Security BearerAuth
 // @Tags Events
 // @Accept mpfd
 // @Produce json
-// @Param name formData string true "Event name"
-// @Param description formData string true "Event description"
-// @Param location formData string true "Event location"
-// @Param datetime formData string true "RFC3339 datetime"
+// @Param name formData string true "Event name" example(Tech Conference 2026)
+// @Param description formData string true "Event description" example(A conference about the latest in tech)
+// @Param location formData string true "Event location" example(Jakarta, Indonesia)
+// @Param datetime formData string true "RFC3339 datetime" example(2026-12-01T09:00:00Z)
 // @Param image formData file true "Event image"
 // @Success 201 {object} response.Envelope{data=dto.EventResponse}
 // @Failure 400 {object} response.Envelope
@@ -75,13 +75,13 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 }
 
 // GetEvents godoc
-// @Summary Get All Events
+// @Summary List events
 // @Description Returns a paginated list of events, optionally filtered by search term.
 // @Tags Events
 // @Produce json
-// @Param search query string false "Search by name or description"
-// @Param page query int false "Page number (default 1)"
-// @Param limit query int false "Results per page (default 6)"
+// @Param search query string false "Search by name or description" example(conference)
+// @Param page query int false "Page number (default 1)" example(1)
+// @Param limit query int false "Results per page (default 6)" example(6)
 // @Success 200 {object} response.Envelope{data=[]dto.EventResponse,meta=dto.EventListMeta}
 // @Failure 500 {object} response.Envelope
 // @Router /events [get]
@@ -99,11 +99,11 @@ func (h *EventHandler) GetEvents(c *gin.Context) {
 }
 
 // GetEventByID godoc
-// @Summary Get an Event by ID
+// @Summary Get an event
 // @Description Returns an event by ID, including its bookings.
 // @Tags Events
 // @Produce json
-// @Param id path int true "Event ID"
+// @Param id path int true "Event ID" example(1)
 // @Success 200 {object} response.Envelope{data=dto.EventDetailResponse}
 // @Failure 404 {object} response.Envelope
 // @Router /events/{id} [get]
@@ -124,7 +124,7 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 }
 
 // GetEventsMine godoc
-// @Summary Get Current User Events
+// @Summary List the user's events
 // @Description Returns events created by the authenticated user.
 // @Security BearerAuth
 // @Tags Events
@@ -149,17 +149,17 @@ func (h *EventHandler) GetEventsMine(c *gin.Context) {
 }
 
 // UpdateEvent godoc
-// @Summary Update an Event
+// @Summary Update an event
 // @Description Updates an event owned by the authenticated user.
 // @Security BearerAuth
 // @Tags Events
 // @Accept mpfd
 // @Produce json
-// @Param id path int true "Event ID"
-// @Param name formData string false "Event name"
-// @Param description formData string false "Event description"
-// @Param location formData string false "Event location"
-// @Param datetime formData string false "RFC3339 datetime"
+// @Param id path int true "Event ID" example(1)
+// @Param name formData string false "Event name" example(Tech Conference 2026 - Updated)
+// @Param description formData string false "Event description" example(A conference about the latest in tech)
+// @Param location formData string false "Event location" example(Jakarta, Indonesia)
+// @Param datetime formData string false "RFC3339 datetime" example(2026-12-01T09:00:00Z)
 // @Param image formData file false "Event image"
 // @Success 200 {object} response.Envelope{data=dto.EventResponse}
 // @Failure 400 {object} response.Envelope
@@ -223,12 +223,12 @@ func (h *EventHandler) UpdateEvent(c *gin.Context) {
 }
 
 // DeleteEvent godoc
-// @Summary Delete an Event
+// @Summary Delete an event
 // @Description Deletes an event owned by the authenticated user.
 // @Security BearerAuth
 // @Tags Events
 // @Produce json
-// @Param id path int true "Event ID"
+// @Param id path int true "Event ID" example(1)
 // @Success 200 {object} response.Envelope
 // @Failure 401 {object} response.Envelope
 // @Failure 403 {object} response.Envelope

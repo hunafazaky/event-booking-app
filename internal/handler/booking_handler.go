@@ -23,7 +23,7 @@ func NewBookingHandler(service service.BookingService) *BookingHandler {
 }
 
 // CreateBooking godoc
-// @Summary Create New Booking
+// @Summary Create a booking
 // @Description Creates a booking for an event for the authenticated user.
 // @Security BearerAuth
 // @Tags Bookings
@@ -59,7 +59,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 }
 
 // GetBooks godoc
-// @Summary Get Current User Bookings
+// @Summary List the user's bookings
 // @Description Returns all bookings belonging to the authenticated user.
 // @Security BearerAuth
 // @Tags Bookings
@@ -84,12 +84,12 @@ func (h *BookingHandler) GetBooks(c *gin.Context) {
 }
 
 // DeleteBooking godoc
-// @Summary Delete a Booking
+// @Summary Delete a booking
 // @Description Deletes a booking owned by the authenticated user.
 // @Security BearerAuth
 // @Tags Bookings
 // @Produce json
-// @Param id path int true "Booking ID"
+// @Param id path int true "Booking ID" example(1)
 // @Success 200 {object} response.Envelope
 // @Failure 401 {object} response.Envelope
 // @Failure 403 {object} response.Envelope

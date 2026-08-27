@@ -105,15 +105,19 @@ definitions:
   service.CreateBookingInput:
     properties:
       event_id:
+        example: 1
         type: integer
       phone:
+        example: "+6281234567890"
         type: string
     type: object
   service.SignInInput:
     properties:
       email:
+        example: jane@example.com
         type: string
       password:
+        example: secret123
         type: string
     required:
     - email
@@ -122,10 +126,13 @@ definitions:
   service.SignUpInput:
     properties:
       email:
+        example: jane@example.com
         type: string
       name:
+        example: Jane Doe
         type: string
       password:
+        example: secret123
         minLength: 6
         type: string
     required:
@@ -136,7 +143,19 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API for browsing events and managing bookings.
+  description: |-
+    API for browsing events and managing bookings.
+
+    **Authentication:** call `POST /auth/signin` (or
+    `/auth/signup` first, if you don't have an account) to
+    get a token. Then click "Authorize" (top right) and
+    enter it as `Bearer <your-token>`. Endpoints marked
+    with a padlock require this.
+
+    **Errors:** every response uses the same envelope —
+    `{ success, message, data, meta, error }`. On failure,
+    `error` holds a human-readable message and `data`/`meta`
+    are omitted.
   title: Event Booking API
   version: "1.0"
 paths:
@@ -261,7 +280,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Get Current User Bookings
+      summary: List the user's bookings
       tags:
       - Bookings
     post:
@@ -305,7 +324,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Create New Booking
+      summary: Create a booking
       tags:
       - Bookings
   /bookings/{id}:
@@ -313,6 +332,7 @@ paths:
       description: Deletes a booking owned by the authenticated user.
       parameters:
       - description: Booking ID
+        example: 1
         in: path
         name: id
         required: true
@@ -338,7 +358,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Delete a Booking
+      summary: Delete a booking
       tags:
       - Bookings
   /events:
@@ -347,14 +367,17 @@ paths:
         term.
       parameters:
       - description: Search by name or description
+        example: conference
         in: query
         name: search
         type: string
       - description: Page number (default 1)
+        example: 1
         in: query
         name: page
         type: integer
       - description: Results per page (default 6)
+        example: 6
         in: query
         name: limit
         type: integer
@@ -378,7 +401,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Get All Events
+      summary: List events
       tags:
       - Events
     post:
@@ -387,21 +410,25 @@ paths:
       description: Creates a new event for the authenticated user.
       parameters:
       - description: Event name
+        example: Tech Conference 2026
         in: formData
         name: name
         required: true
         type: string
       - description: Event description
+        example: A conference about the latest in tech
         in: formData
         name: description
         required: true
         type: string
       - description: Event location
+        example: Jakarta, Indonesia
         in: formData
         name: location
         required: true
         type: string
       - description: RFC3339 datetime
+        example: "2026-12-01T09:00:00Z"
         in: formData
         name: datetime
         required: true
@@ -437,7 +464,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Create New Event
+      summary: Create an event
       tags:
       - Events
   /events/{id}:
@@ -445,6 +472,7 @@ paths:
       description: Deletes an event owned by the authenticated user.
       parameters:
       - description: Event ID
+        example: 1
         in: path
         name: id
         required: true
@@ -470,13 +498,14 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Delete an Event
+      summary: Delete an event
       tags:
       - Events
     get:
       description: Returns an event by ID, including its bookings.
       parameters:
       - description: Event ID
+        example: 1
         in: path
         name: id
         required: true
@@ -497,7 +526,7 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: Get an Event by ID
+      summary: Get an event
       tags:
       - Events
     put:
@@ -506,23 +535,28 @@ paths:
       description: Updates an event owned by the authenticated user.
       parameters:
       - description: Event ID
+        example: 1
         in: path
         name: id
         required: true
         type: integer
       - description: Event name
+        example: Tech Conference 2026 - Updated
         in: formData
         name: name
         type: string
       - description: Event description
+        example: A conference about the latest in tech
         in: formData
         name: description
         type: string
       - description: Event location
+        example: Jakarta, Indonesia
         in: formData
         name: location
         type: string
       - description: RFC3339 datetime
+        example: "2026-12-01T09:00:00Z"
         in: formData
         name: datetime
         type: string
@@ -564,7 +598,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Update an Event
+      summary: Update an event
       tags:
       - Events
   /events/mine:
@@ -590,7 +624,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Get Current User Events
+      summary: List the user's events
       tags:
       - Events
 securityDefinitions:

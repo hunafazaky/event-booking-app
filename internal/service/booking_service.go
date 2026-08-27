@@ -11,8 +11,8 @@ import (
 )
 
 type CreateBookingInput struct {
-	Phone   string `json:"phone"`
-	EventID uint   `json:"event_id"`
+	Phone   string `json:"phone" example:"+6281234567890"`
+	EventID uint   `json:"event_id" example:"1"`
 }
 
 type BookingService interface {
