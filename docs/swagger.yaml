@@ -184,7 +184,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: Get Current User Data
+      summary: Get user's data
       tags:
       - Auth
   /auth/signin:
@@ -280,7 +280,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: List the user's bookings
+      summary: Get user's booking list
       tags:
       - Bookings
     post:
@@ -401,7 +401,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Envelope'
-      summary: List events
+      summary: Get event list
       tags:
       - Events
     post:
@@ -624,7 +624,7 @@ paths:
             $ref: '#/definitions/response.Envelope'
       security:
       - BearerAuth: []
-      summary: List the user's events
+      summary: Get user's event list
       tags:
       - Events
 securityDefinitions:

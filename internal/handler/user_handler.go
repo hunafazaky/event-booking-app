@@ -71,7 +71,7 @@ func (h *UserHandler) SignIn(c *gin.Context) {
 }
 
 // GetMe godoc
-// @Summary Get Current User Data
+// @Summary Get user's data
 // @Description Returns the profile of the authenticated user.
 // @Security BearerAuth
 // @Tags Auth

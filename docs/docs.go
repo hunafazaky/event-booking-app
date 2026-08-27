@@ -29,7 +29,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Get Current User Data",
+                "summary": "Get user's data",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -194,7 +194,7 @@ const docTemplate = `{
                 "tags": [
                     "Bookings"
                 ],
-                "summary": "List the user's bookings",
+                "summary": "Get user's booking list",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -361,7 +361,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "List events",
+                "summary": "Get event list",
                 "parameters": [
                     {
                         "type": "string",
@@ -530,7 +530,7 @@ const docTemplate = `{
                 "tags": [
                     "Events"
                 ],
-                "summary": "List the user's events",
+                "summary": "Get user's event list",
                 "responses": {
                     "200": {
                         "description": "OK",

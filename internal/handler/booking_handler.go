@@ -59,7 +59,7 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 }
 
 // GetBooks godoc
-// @Summary List the user's bookings
+// @Summary Get user's booking list
 // @Description Returns all bookings belonging to the authenticated user.
 // @Security BearerAuth
 // @Tags Bookings

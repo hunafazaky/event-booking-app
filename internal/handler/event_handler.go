@@ -75,7 +75,7 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 }
 
 // GetEvents godoc
-// @Summary List events
+// @Summary Get event list
 // @Description Returns a paginated list of events, optionally filtered by search term.
 // @Tags Events
 // @Produce json
@@ -124,7 +124,7 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 }
 
 // GetEventsMine godoc
-// @Summary List the user's events
+// @Summary Get user's event list
 // @Description Returns events created by the authenticated user.
 // @Security BearerAuth
 // @Tags Events
