@@ -173,7 +173,7 @@ func Setup(
 		c.Data(http.StatusOK, "application/json", []byte(docs.SwaggerInfo.ReadDoc()))
 	})
 
-	server.GET("/reference", func(c *gin.Context) {
+	server.GET("/docs", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(scalarReferenceHTML))
 	})
 
@@ -186,7 +186,7 @@ func Setup(
 	// they landed on.
 	server.GET("/", func(c *gin.Context) {
 		response.Success(c, http.StatusOK, "Event Booking API", gin.H{
-			"docs":    "/reference",
+			"docs":    "/docs",
 			"swagger": "/swagger/index.html",
 		})
 	})

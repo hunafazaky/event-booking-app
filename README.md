@@ -51,8 +51,8 @@ account (for event image uploads).
 
 ## API documentation
 
-Interactive docs (Swagger UI, with request/response schemas and
-try-it-out): **`/swagger/index.html`**
+Interactive docs (Scalar UI, with request/response schemas and
+try-it-out): **`/docs`**
 
 For a quick-reference summary without running the server, see
 [`docs/API_RESPONSES.md`](docs/API_RESPONSES.md).
